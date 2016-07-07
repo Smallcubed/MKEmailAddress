@@ -49,7 +49,7 @@ const NSInteger kQuotedPrintableLineLength = 76;
     if (usedEncoding) *usedEncoding = attemptedEncoding;
     if (attemptedEncoding){
         // make it quotedPrintable
-            // string needs to be broken up into different mime words if length exceeds 76 char
+        // string needs to be broken up into different mime words if length exceeds 76 char
         
         NSMutableString * muQuotedPrintableString = [NSMutableString string];
         
@@ -84,7 +84,7 @@ const NSInteger kQuotedPrintableLineLength = 76;
 
 +(NSString*)quotedPrintableStringForPlainTextBody:(NSString *)string preferredEncoding:(NSStringEncoding)preferredEncoding encodingUsed:(NSStringEncoding *)usedEncoding {
     NSString * quotedPrintable= nil;
-        
+    
     NSStringEncoding attemptedEncoding = preferredEncoding;
     if (![string canBeConvertedToEncoding:attemptedEncoding]) {
         attemptedEncoding = 0;
@@ -115,8 +115,8 @@ const NSInteger kQuotedPrintableLineLength = 76;
             charSet = [NSMutableCharacterSet characterSetWithRange:NSMakeRange(32, 94)]; //ascii 32-126
             [charSet addCharactersInString:@"\r\n"];
             [charSet removeCharactersInString:@"=!\"#$@[\\]^`{|}~"]; //EBCDIC characters  should be encoded for passing through
-                // potential gateways.
-
+            // potential gateways.
+            
         });
         for (int i = 0; i <len; i++){
             unsigned char currentChar =bytesBuffer[i];
@@ -127,7 +127,7 @@ const NSInteger kQuotedPrintableLineLength = 76;
                 [muQuotedPrintableString appendFormat:@"=%02X", currentChar];
             }
         }
-       // free(bytesBuffer);
+        // free(bytesBuffer);
         
         quotedPrintable = muQuotedPrintableString;
     }
@@ -219,7 +219,7 @@ const NSInteger kQuotedPrintableLineLength = 76;
     }
     if (usedEncoding) *usedEncoding = 0;
     return nil;
-    // if we are here, it is either no 
+    // if we are here, it is either no
 }
 
 
@@ -280,7 +280,7 @@ const NSInteger kQuotedPrintableLineLength = 76;
                 // low-order hex char
                 encodedIndex++;
                 if (encodedIndex >= encodedString.length) return nil;
-
+                
                 h = [encodedString characterAtIndex:encodedIndex];
                 if ((h >= '0') && (h <= '9'))
                     val += (int)(h - '0');
@@ -319,84 +319,87 @@ const NSInteger kQuotedPrintableLineLength = 76;
 }
 
 -(NSString*)decodedMimeEncodedString{
-    NSScanner * scanner = [NSScanner scannerWithString:self];
-    [scanner setCharactersToBeSkipped:nil];
-    [scanner setCaseSensitive:NO];
     NSMutableString * decodedString = [NSMutableString string];
-    NSMutableData * fullDecodedData = [NSMutableData data];
-    NSStringEncoding dataEncoding = 0;
-    
-    while (![scanner isAtEnd]){
-        NSString * leadingWhiteSpace = nil;
-        [scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&leadingWhiteSpace];
-    
-        NSString * leadingString = nil;
-        [scanner scanUpToString:@"=?" intoString:&leadingString];
-        if (leadingString) {
-            if (leadingWhiteSpace) [decodedString appendString:leadingWhiteSpace];
-            [decodedString appendString:leadingString];
-        }
+    @autoreleasepool {
         
-        NSUInteger mimeStart = [scanner scanLocation];
-        NSUInteger mimeEnd = NSNotFound;
-        if ([scanner scanString:@"=?" intoString:nil]){
-            [scanner scanUpToString:@"?" intoString:nil];  // scan the encoding
-            if ([scanner scanString:@"?" intoString:nil]){
-                if ([scanner scanString:@"B" intoString:nil] || [scanner scanString:@"Q" intoString:nil]){  // scans type
-                     if ([scanner scanString:@"?" intoString:nil]){
-                         [scanner scanUpToString:@"?=" intoString:nil];  // scans word
-                         if ([scanner scanString:@"?=" intoString:nil])
-                             mimeEnd = [scanner scanLocation];
-                     }
-                }
-            }
-        }
-        if (mimeEnd != NSNotFound){
-            NSString * mimeWord = [[scanner string] substringWithRange:NSMakeRange(mimeStart, mimeEnd-mimeStart)];
-            NSStringEncoding wordEncoding = 0;
-            NSData * decodedWordData = nil;
-            @try {
-                decodedWordData = [NSData dataForMimeEncodedWord:mimeWord usedEncoding:&wordEncoding];
-            }
-            @catch (NSException *exception) {
-                NSLog (@"problem parsing MimeEncodedWord: %@",mimeWord);
-            }
-            @finally {
-  
+        NSScanner * scanner = [NSScanner scannerWithString:self];
+        [scanner setCharactersToBeSkipped:nil];
+        [scanner setCaseSensitive:NO];
+        NSMutableData * fullDecodedData = [NSMutableData data];
+        NSStringEncoding dataEncoding = 0;
+        
+        while (![scanner isAtEnd]){
+            NSString * leadingWhiteSpace = nil;
+            [scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&leadingWhiteSpace];
+            
+            NSString * leadingString = nil;
+            [scanner scanUpToString:@"=?" intoString:&leadingString];
+            if (leadingString) {
+                if (leadingWhiteSpace) [decodedString appendString:leadingWhiteSpace];
+                [decodedString appendString:leadingString];
             }
             
-            if (dataEncoding==0){
-                // this is first pass -- just append the data;
-                dataEncoding = wordEncoding;
-                [fullDecodedData appendData:decodedWordData];
+            NSUInteger mimeStart = [scanner scanLocation];
+            NSUInteger mimeEnd = NSNotFound;
+            if ([scanner scanString:@"=?" intoString:nil]){
+                [scanner scanUpToString:@"?" intoString:nil];  // scan the encoding
+                if ([scanner scanString:@"?" intoString:nil]){
+                    if ([scanner scanString:@"B" intoString:nil] || [scanner scanString:@"Q" intoString:nil]){  // scans type
+                        if ([scanner scanString:@"?" intoString:nil]){
+                            [scanner scanUpToString:@"?=" intoString:nil];  // scans word
+                            if ([scanner scanString:@"?=" intoString:nil])
+                                mimeEnd = [scanner scanLocation];
+                        }
+                    }
+                }
             }
-            else if (wordEncoding != dataEncoding){
-                // this word has a different encoding than accumulated data
-                // so convert the accumulated data to a string (using its encoding) and append to ongoing string.
+            if (mimeEnd != NSNotFound){
+                NSString * mimeWord = [[scanner string] substringWithRange:NSMakeRange(mimeStart, mimeEnd-mimeStart)];
+                NSStringEncoding wordEncoding = 0;
+                NSData * decodedWordData = nil;
+                @try {
+                    decodedWordData = [NSData dataForMimeEncodedWord:mimeWord usedEncoding:&wordEncoding];
+                }
+                @catch (NSException *exception) {
+                    NSLog (@"problem parsing MimeEncodedWord: %@",mimeWord);
+                }
+                @finally {
+                    
+                }
                 
-                NSString * decodedChunk =  [[NSString alloc] initWithData:fullDecodedData encoding:dataEncoding];
-                if (decodedChunk){
-                    [decodedString appendString: decodedChunk];
+                if (dataEncoding==0){
+                    // this is first pass -- just append the data;
+                    dataEncoding = wordEncoding;
+                    [fullDecodedData appendData:decodedWordData];
+                }
+                else if (wordEncoding != dataEncoding){
+                    // this word has a different encoding than accumulated data
+                    // so convert the accumulated data to a string (using its encoding) and append to ongoing string.
+                    
+                    NSString * decodedChunk =  [[NSString alloc] initWithData:fullDecodedData encoding:dataEncoding];
+                    if (decodedChunk){
+                        [decodedString appendString: decodedChunk];
+                    }
+                    else{
+                        NSLog(@"problem decoding MimeString: %@",self);
+                    }
+                    // and start accumulating data again with new encoding.
+                    dataEncoding = wordEncoding;
+                    [fullDecodedData setData:decodedWordData];
                 }
                 else{
-                    NSLog(@"problem decoding MimeString: %@",self);
+                    // same encoding as last chuck -- so just append the data.
+                    [fullDecodedData appendData:decodedWordData];
                 }
-                // and start accumulating data again with new encoding.
-                dataEncoding = wordEncoding;
-                [fullDecodedData setData:decodedWordData];
-            }
-            else{
-                // same encoding as last chuck -- so just append the data.
-                [fullDecodedData appendData:decodedWordData];
             }
         }
-    }
-    
-    // if there is is any remaining accumulated data, decode into string and append to the wholeString
-    if (fullDecodedData && dataEncoding){
-        NSString * decodedChunk =  [[NSString alloc] initWithData:fullDecodedData encoding:dataEncoding];
-        if (decodedChunk){
-            [decodedString appendString: decodedChunk];
+        
+        // if there is is any remaining accumulated data, decode into string and append to the wholeString
+        if (fullDecodedData && dataEncoding){
+            NSString * decodedChunk =  [[NSString alloc] initWithData:fullDecodedData encoding:dataEncoding];
+            if (decodedChunk){
+                [decodedString appendString: decodedChunk];
+            }
         }
     }
     return [NSString stringWithString:decodedString];
