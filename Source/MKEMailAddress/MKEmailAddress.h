@@ -30,6 +30,7 @@
 @property(readonly) NSString * userAtDomain;
 @property(readonly) NSString * displayName;
 @property(strong) NSString * invalidHeaderString;
+@property(readonly) NSString * digest;
 
 #ifndef NS_DESIGNATED_INITIALIZER
 #define NS_DESIGNATED_INITIALIZER 

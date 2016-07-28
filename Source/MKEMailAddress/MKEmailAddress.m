@@ -15,6 +15,66 @@
 
 #import "NSScanner+RFC2822.h"
 #import "NSString+MimeEncoding.h"
+#import <CommonCrypto/CommonDigest.h>
+#import <CommonCrypto/CommonHMAC.h>
+
+@implementation NSData(MKE_MKEmailAddress)
+- (NSString *)MKEpathSafeBase64EncodedString {
+    
+    if ([self respondsToSelector:@selector(base64EncodedStringWithOptions:)]){
+        NSString    *cleaned = [[self base64EncodedStringWithOptions:0] stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
+        cleaned = [cleaned stringByReplacingOccurrencesOfString:@"+" withString:@"_"];
+        return cleaned;
+    }
+    else{
+        const char* input =  [self bytes];
+        NSInteger length = [self length];
+        
+        static char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=";
+        
+        NSMutableData* data = [NSMutableData dataWithLength:((length + 2) / 3) * 4];
+        uint8_t* output = (uint8_t*)data.mutableBytes;
+        
+        NSInteger i;
+        for (i=0; i < length; i += 3) {
+            NSInteger value = 0;
+            NSInteger j;
+            for (j = i; j < (i + 3); j++) {
+                value <<= 8;
+                if (j < length) {
+                    value |= (0xFF & input[j]);
+                }
+            }
+            
+            NSInteger theIndex = (i / 3) * 4;
+            output[theIndex + 0] =                    table[(value >> 18) & 0x3F];
+            output[theIndex + 1] =                    table[(value >> 12) & 0x3F];
+            output[theIndex + 2] = (i + 1) < length ? table[(value >> 6)  & 0x3F] : '=';
+            output[theIndex + 3] = (i + 2) < length ? table[(value >> 0)  & 0x3F] : '=';
+        }
+        return [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] ;
+    }
+}
+@end
+
+@implementation NSString(MKE_MKEmailAddress)
+-(NSString*)MKEshortSHAHashString{
+#define ID_SIZE 12
+    // Size 12 = 72 bits = number of inputs to have a 50% chance of collision: 8.09*10^10 (80.9 billion)
+    // number of input will be much greater once there are constraints to the inputs.
+    
+    const char *s=[self cStringUsingEncoding:NSUTF8StringEncoding];
+    
+    uint8_t digest[CC_SHA256_DIGEST_LENGTH]={0};
+    CC_SHA256(s, (CC_LONG)strlen(s), digest);
+    
+    NSData * digestData = [NSData dataWithBytes:digest length:CC_SHA256_DIGEST_LENGTH];
+    
+    NSString * generatedID =[[digestData MKEpathSafeBase64EncodedString] substringToIndex:ID_SIZE];
+    return generatedID;
+}
+
+@end
 
 
 @implementation MKEmailAddress
@@ -58,7 +118,6 @@
         self.domain = domain;
     }
     return self;
-    
 }
 
 +(NSString*)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses{
@@ -108,8 +167,11 @@
     }
     return emailAddresses;    
 }
+-(NSString*)digest{
+    return [[self rfc2822Representation] MKEshortSHAHashString];
+}
 
-#pragma mark NSCopying, Equality 
+#pragma mark NSCopying, Equality
 
 -(MKEmailAddress*)copyWithZone:(NSZone*)aZone{
     MKEmailAddress* theCopy = [[MKEmailAddress alloc] initWithAddressComment:self.addressComment userName:self.userName domain:self.domain];
@@ -162,7 +224,6 @@
                 NSString * encodedComment = [NSString mimeWordWithString:self.addressComment preferredEncoding:NSISOLatin1StringEncoding encodingUsed:nil];
                 return [NSString stringWithFormat:@"\"%@\"",encodedComment];
             }
-
         }
     }
     else{
