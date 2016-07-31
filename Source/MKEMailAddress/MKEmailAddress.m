@@ -168,7 +168,14 @@
     return emailAddresses;    
 }
 -(NSString*)digest{
-    return [[self rfc2822Representation] MKEshortSHAHashString];
+    NSString * stringToHash = [self rfc2822Representation];
+    if (!stringToHash){
+        stringToHash = self.commentedAddress;
+    }
+    if (!stringToHash){
+        stringToHash = self.invalidHeaderString;
+    }
+    return [stringToHash MKEshortSHAHashString];
 }
 
 #pragma mark NSCopying, Equality
