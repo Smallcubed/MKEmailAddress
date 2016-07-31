@@ -334,14 +334,16 @@ const NSInteger kQuotedPrintableLineLength = 76;
             
             NSString * leadingString = nil;
             [scanner scanUpToString:@"=?" intoString:&leadingString];
-            if (leadingString) {
-                if (leadingWhiteSpace) [decodedString appendString:leadingWhiteSpace];
-                [decodedString appendString:leadingString];
-            }
+ 
             
             NSUInteger mimeStart = [scanner scanLocation];
             NSUInteger mimeEnd = NSNotFound;
             if ([scanner scanString:@"=?" intoString:nil]){
+                if (leadingString) {
+                    // we hit another encoding start just after the last encoded word -- so keep accumulating as if it were one word.
+                    if (leadingWhiteSpace) [decodedString appendString:leadingWhiteSpace];
+                    [decodedString appendString:leadingString];
+                }
                 [scanner scanUpToString:@"?" intoString:nil];  // scan the encoding
                 if ([scanner scanString:@"?" intoString:nil]){
                     if ([scanner scanString:@"B" intoString:nil] || [scanner scanString:@"Q" intoString:nil]){  // scans type
@@ -351,6 +353,22 @@ const NSInteger kQuotedPrintableLineLength = 76;
                                 mimeEnd = [scanner scanLocation];
                         }
                     }
+                }
+            }
+            else{
+                // we did not hit another encoding start, so append the last data chunk and continue.
+                if (fullDecodedData && dataEncoding){
+                    NSString * decodedChunk =  [[NSString alloc] initWithData:fullDecodedData encoding:dataEncoding];
+                    if (decodedChunk){
+                        [decodedString appendString: decodedChunk];
+                    }
+                    fullDecodedData = [NSMutableData data];
+                    dataEncoding = 0;
+                }
+
+                if (leadingString) {
+                    if (leadingWhiteSpace) [decodedString appendString:leadingWhiteSpace];
+                    [decodedString appendString:leadingString];
                 }
             }
             if (mimeEnd != NSNotFound){
@@ -392,9 +410,11 @@ const NSInteger kQuotedPrintableLineLength = 76;
                     [fullDecodedData appendData:decodedWordData];
                 }
             }
-        }
         
-        // if there is is any remaining accumulated data, decode into string and append to the wholeString
+        
+            // if there is is any remaining accumulated data, decode into string and append to the wholeString
+            
+        }
         if (fullDecodedData && dataEncoding){
             NSString * decodedChunk =  [[NSString alloc] initWithData:fullDecodedData encoding:dataEncoding];
             if (decodedChunk){
