@@ -18,7 +18,8 @@ typedef NS_ENUM(NSInteger, EmailParserErrorCodes){
     kEmailParserMalformedExtraneousTextAfterEmailError= 7,
     kEmailParserMalformedAddressNotEnclosedInAngularError=8,
     kEmailParserCannotParseError = 9,
-    kEmailParserIllegalCharacterError = 10
+    kEmailParserIllegalCharacterError = 10,
+    kEmailParserMalformedQuotedPrintableError = 11
 };
 
 
