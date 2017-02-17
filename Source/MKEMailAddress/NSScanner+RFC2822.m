@@ -421,6 +421,27 @@
     //[self scanDomainDotAtomIntoString:returnString];
     return self.scanLocation>startLocation;
 }
+-(BOOL)scanMessageIdIntoString:(NSString**)returnString{
+    NSUInteger startLocation = self.scanLocation;
+    [self scanUpToString:@"<" intoString:nil];
+    
+    if ([self currentCharacter]!='<'){
+        self.scanLocation = startLocation;
+        return NO;
+    }
+    NSString * innerId = nil;
+    [self scanUpToString:@">" intoString:&innerId];
+    if (![self scanString:@">" intoString:nil]){
+        self.scanLocation = startLocation;
+        return NO;
+    }
+    else if (returnString) {
+        *returnString = [innerId stringByAppendingString:@">"];
+    }
+    return self.scanLocation>startLocation;
+
+}
+    
 - (BOOL)scanAngularAddrSpecIntoLocalName:(NSString**)localNameString domain:(NSString**) domainString error:(NSError**)error{
     if (error) *error = nil;
     if ([self currentCharacter]!='<'){

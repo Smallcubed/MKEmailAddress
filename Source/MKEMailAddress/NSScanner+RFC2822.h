@@ -95,6 +95,8 @@ typedef NS_ENUM(NSInteger, EmailParserErrorCodes){
 -(BOOL) scanRFC2822CommentIntoString:(NSString**) returnString
                         error:(NSError**) error;
 
+-(BOOL) scanMessageIdIntoString:(NSString**)returnString;
+
 -(BOOL) scanLocalPartIntoString:(NSString**) returnString;
 
 -(BOOL) scanDomainIntoString:(NSString**) returnString;
