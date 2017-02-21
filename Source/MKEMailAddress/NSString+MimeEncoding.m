@@ -151,9 +151,19 @@ const NSInteger kQuotedPrintableLineLength = 76;
             // in which case finish the line and add it to the array lines, then continue.
             
             if (c == '\r' && curPosition+1 < quotedPrintable.length && [quotedPrintable characterAtIndex:curPosition+1]=='\n'){
-                NSString * currentLine = [NSString stringWithFormat:@"%@",[quotedPrintable substringWithRange:NSMakeRange(lineStart, (curPosition-lineStart)-1)]];
+                NSString * currentLine = [NSString stringWithFormat:@"%@",[quotedPrintable substringWithRange:NSMakeRange(lineStart, (curPosition-lineStart))]];
                 [lines addObject:currentLine];
                 curPosition+=2;
+                lineStart =curPosition;
+                continue;
+            }
+            // see if the current characer is  \n
+            // in which case finish the line and add it to the array lines, then continue.
+
+            if (c == '\n'){
+                NSString * currentLine = [NSString stringWithFormat:@"%@",[quotedPrintable substringWithRange:NSMakeRange(lineStart, (curPosition-lineStart))]];
+                [lines addObject:currentLine];
+                curPosition+=1;
                 lineStart =curPosition;
                 continue;
             }
