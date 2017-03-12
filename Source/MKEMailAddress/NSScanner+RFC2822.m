@@ -93,7 +93,7 @@
         }
     }
     else{
-        [self scanAtomIntoString:returnString];
+        [self scanRFC2822AtomIntoString:returnString];
     }
     return self.scanLocation>startLocation;
 }
@@ -171,7 +171,9 @@
     return self.scanLocation>startLocation;
 }
 
--(BOOL)scanAtomIntoString:(NSString**)returnString{
+
+
+-(BOOL)scanRFC2822AtomIntoString:(NSString**)returnString{
     NSUInteger startLocation = self.scanLocation;
     [self scanFoldingWhiteSpace];
     [self scanCharactersFromSet:[NSCharacterSet rfc2822atomTextSet] intoString:returnString];
@@ -870,3 +872,6 @@
 }
 
 @end
+
+
+

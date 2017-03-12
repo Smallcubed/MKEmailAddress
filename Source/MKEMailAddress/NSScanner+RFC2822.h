@@ -61,7 +61,7 @@ typedef NS_ENUM(NSInteger, EmailParserErrorCodes){
      */
 
 
--(BOOL) scanAtomIntoString: (NSString**)returnString;
+-(BOOL) scanRFC2822AtomIntoString: (NSString**)returnString;
     /* Augmented Backus-Naur Form:
      */
 
@@ -126,5 +126,5 @@ typedef NS_ENUM(NSInteger, EmailParserErrorCodes){
                                         domain:(NSString**) domain
                                        invalid:(NSString**) invalidPart
                                          error:(NSError**) error;
-
 @end
+
