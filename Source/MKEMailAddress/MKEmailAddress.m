@@ -98,7 +98,7 @@
     return self;
 }
 
-- (instancetype)initWithCommentedAddress:(NSString*)commentedAddress {
+- (instancetype)initWithRawAddress:(NSString*)commentedAddress {
     self = [self init];
     if (commentedAddress) {
         NSScanner * scanner = [NSScanner scannerWithString:commentedAddress];
@@ -114,13 +114,13 @@
     return self;
 }
 
-+ (MKEmailAddress *)addressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart {
++ (MKEmailAddress *)emailAddressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart {
 	return [[[self class] alloc] initWithAddressComment:commentPart
 											   userName:userPart
 												 domain:domainPart];
 }
 
-+ (MKEmailAddress *)addressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier {
++ (MKEmailAddress *)emailAddressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier {
 	if ((person == nil) || (identifier == nil)) {
 		return nil;
 	}
@@ -134,7 +134,7 @@
 	[scanner scanRFC2822EmailAddressIntoDisplayName:&displayName localName:&userName domain:&domain error:&error];
 	if (error == nil) {
 		displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
-		return [[self class] addressWithComment:displayName userName:userName domain:domain];
+		return [[self class] emailAddressWithComment:displayName userName:userName domain:domain];
 	}
 	return nil;
 }

@@ -36,13 +36,14 @@
 @property (readonly) NSString * rfc2822Representation;
 @property (readonly) BOOL valid;
 
-- (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *) userPart domain:(NSString *)domainPart ;
-- (instancetype)initWithCommentedAddress:(NSString *)commentedAddress;
-+ (NSString *)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses;
-+ (MKEmailAddressArray *)emailAddressesFromHeaderValue:(NSString *)headerValue;
-+ (MKEmailAddress *) addressWithComment:(NSString *)commentPart userName:(NSString *) userPart domain:(NSString *)domainPart;
-+ (MKEmailAddress *)addressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier;
+- (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *) userPart domain:(NSString *)domainPart;
+- (instancetype)initWithRawAddress:(NSString *)commentedAddress;
 
++ (MKEmailAddressArray *)emailAddressesFromHeaderValue:(NSString *)headerValue;
++ (MKEmailAddress *)emailAddressWithComment:(NSString *)commentPart userName:(NSString *) userPart domain:(NSString *)domainPart;
++ (MKEmailAddress *)emailAddressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier;
+
++ (NSString *)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses;
 
 @end
 
