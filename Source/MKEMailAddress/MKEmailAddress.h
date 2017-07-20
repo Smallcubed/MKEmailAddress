@@ -24,10 +24,10 @@
 
 @interface MKEmailAddress:NSObject <NSCopying>
 
-@property (strong) NSString * addressComment; //	Email Address Label
+@property (strong) NSString * addressComment;
 @property (strong) NSString * userName;
 @property (strong) NSString * domain;
-@property (strong) NSString * invalidHeaderString;
+@property (strong) NSString * invalidRawAddress;
 
 @property (readonly) NSString * displayAddress;
 @property (readonly) NSString * userAtDomain;
@@ -36,12 +36,11 @@
 @property (readonly) NSString * rfc2822Representation;
 @property (readonly) BOOL valid;
 
-- (instancetype) initWithInvalidHeaderString:(NSString*)headerString;
-- (instancetype) initWithAddressComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart ;
-- (instancetype) initWithCommentedAddress:(NSString*)commentedAddress;
-+ (NSString*)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses;
-+ (MKEmailAddressArray*)emailAddressesFromHeaderValue:(NSString*)headerValue;
-+ (MKEmailAddress*) addressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart;
+- (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *) userPart domain:(NSString *)domainPart ;
+- (instancetype)initWithCommentedAddress:(NSString *)commentedAddress;
++ (NSString *)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses;
++ (MKEmailAddressArray *)emailAddressesFromHeaderValue:(NSString *)headerValue;
++ (MKEmailAddress *) addressWithComment:(NSString *)commentPart userName:(NSString *) userPart domain:(NSString *)domainPart;
 + (MKEmailAddress *)addressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier;
 
 

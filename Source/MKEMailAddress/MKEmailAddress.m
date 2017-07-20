@@ -83,7 +83,7 @@
 - (instancetype)initWithInvalidHeaderString:(NSString*)headerString {
     self =[self init];
     if (self){
-        self.invalidHeaderString = headerString;
+        self.invalidRawAddress = headerString;
     }
     return self;
 }
@@ -193,7 +193,7 @@
         stringToHash = self.displayAddress;
     }
     if (!stringToHash){
-        stringToHash = self.invalidHeaderString;
+        stringToHash = self.invalidRawAddress;
     }
     return [stringToHash MKEshortSHAHashString];
 }
