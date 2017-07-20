@@ -738,7 +738,7 @@
 #ifdef DEBUG_RFC2822_SCANNER
                     NSLog (@"quotedText: %@",quotedText);
 #endif
-                    if (displayName) *displayName =quotedText;
+                    if (displayName) *displayName = quotedText;
                     
                 }
                 break;
