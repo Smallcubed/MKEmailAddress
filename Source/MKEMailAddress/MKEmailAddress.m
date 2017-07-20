@@ -80,13 +80,7 @@
 @implementation MKEmailAddress
 
 
-+(MKEmailAddress*) addressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart{
-    return [[[self class] alloc] initWithAddressComment:commentPart
-                                               userName:userPart
-                                                 domain:domainPart];
-    
-}
--(instancetype) initWithInvalidHeaderString:(NSString*)headerString{
+- (instancetype)initWithInvalidHeaderString:(NSString*)headerString {
     self =[self init];
     if (self){
         self.invalidHeaderString = headerString;
@@ -94,7 +88,7 @@
     return self;
 }
 
--(instancetype) initWithAddressComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart {
+- (instancetype)initWithAddressComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart {
     self = [self init];
     if (self){
         self.addressComment =commentPart;
@@ -104,7 +98,7 @@
     return self;
 }
 
--(instancetype) initWithCommentedAddress:(NSString*)commentedAddress{
+- (instancetype)initWithCommentedAddress:(NSString*)commentedAddress {
     self = [self init];
     if (commentedAddress) {
         NSScanner * scanner = [NSScanner scannerWithString:commentedAddress];
@@ -120,7 +114,32 @@
     return self;
 }
 
-+(NSString*)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses{
++ (MKEmailAddress *)addressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart {
+	return [[[self class] alloc] initWithAddressComment:commentPart
+											   userName:userPart
+												 domain:domainPart];
+}
+
++ (MKEmailAddress *)addressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier {
+	if ((person == nil) || (identifier == nil)) {
+		return nil;
+	}
+	ABMultiValue * addressValues = [person valueForProperty:kABEmailProperty];
+	NSString * addressString = [addressValues valueForIdentifier:identifier];
+	NSScanner * scanner = [NSScanner scannerWithString:addressString];
+	NSString * displayName = nil;
+	NSString * userName = nil;
+	NSString * domain = nil;
+	NSError * error = nil;
+	[scanner scanRFC2822EmailAddressIntoDisplayName:&displayName localName:&userName domain:&domain error:&error];
+	if (error == nil) {
+		displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
+		return [[self class] addressWithComment:displayName userName:userName domain:domain];
+	}
+	return nil;
+}
+
++ (NSString*)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses {
     NSMutableArray * rfc2822Reps = [NSMutableArray array];
     for (MKEmailAddress* anAddr in addresses){
         NSString * rfcRep = [anAddr rfc2822Representation];
@@ -134,7 +153,7 @@
     return nil;
 }
 
-+(NSArray*)emailAddressesFromHeaderValue:(NSString*)headerValue{
++ (NSArray*)emailAddressesFromHeaderValue:(NSString*)headerValue {
     if (!headerValue) return nil;
     NSMutableArray * emailAddresses = [NSMutableArray array];
     @autoreleasepool {
@@ -167,7 +186,8 @@
     }
     return emailAddresses;    
 }
--(NSString*)digest{
+
+- (NSString*)digest {
     NSString * stringToHash = [self rfc2822Representation];
     if (!stringToHash){
         stringToHash = self.commentedAddress;

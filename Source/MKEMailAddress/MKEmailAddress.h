@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AddressBook/AddressBook.h>
 @class MKEmailAddress;
 
 #if __has_feature(objc_generics)
@@ -23,7 +24,7 @@
 
 @interface MKEmailAddress:NSObject <NSCopying>
 
-@property(strong) NSString * addressComment;
+@property(strong) NSString * addressComment; //	Email Address Label
 @property(strong) NSString * userName;
 @property(strong) NSString * domain;
 @property(readonly) NSString * commentedAddress;
@@ -36,12 +37,13 @@
 #define NS_DESIGNATED_INITIALIZER 
 #endif
 
--(instancetype) initWithInvalidHeaderString:(NSString*)headerString;
--(instancetype) initWithAddressComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart ;
--(instancetype) initWithCommentedAddress:(NSString*)commentedAddress;
-+(NSString*)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses;
-+(MKEmailAddressArray*)emailAddressesFromHeaderValue:(NSString*)headerValue;
-+(MKEmailAddress*) addressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart;
+- (instancetype) initWithInvalidHeaderString:(NSString*)headerString;
+- (instancetype) initWithAddressComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart ;
+- (instancetype) initWithCommentedAddress:(NSString*)commentedAddress;
++ (NSString*)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses;
++ (MKEmailAddressArray*)emailAddressesFromHeaderValue:(NSString*)headerValue;
++ (MKEmailAddress*) addressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart;
++ (MKEmailAddress *)addressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier;
 
 
 -(NSString*)rfc2822Representation;
