@@ -24,18 +24,17 @@
 
 @interface MKEmailAddress:NSObject <NSCopying>
 
-@property(strong) NSString * addressComment; //	Email Address Label
-@property(strong) NSString * userName;
-@property(strong) NSString * domain;
-@property(readonly) NSString * commentedAddress;
-@property(readonly) NSString * userAtDomain;
-@property(readonly) NSString * displayName;
-@property(strong) NSString * invalidHeaderString;
-@property(readonly) NSString * digest;
+@property (strong) NSString * addressComment; //	Email Address Label
+@property (strong) NSString * userName;
+@property (strong) NSString * domain;
+@property (strong) NSString * invalidHeaderString;
 
-#ifndef NS_DESIGNATED_INITIALIZER
-#define NS_DESIGNATED_INITIALIZER 
-#endif
+@property (readonly) NSString * displayAddress;
+@property (readonly) NSString * userAtDomain;
+@property (readonly) NSString * displayName;
+@property (readonly) NSString * digest;
+@property (readonly) NSString * rfc2822Representation;
+@property (readonly) BOOL valid;
 
 - (instancetype) initWithInvalidHeaderString:(NSString*)headerString;
 - (instancetype) initWithAddressComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart ;
@@ -46,7 +45,5 @@
 + (MKEmailAddress *)addressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier;
 
 
--(NSString*)rfc2822Representation;
--(BOOL)isValid;
 @end
 

@@ -190,7 +190,7 @@
 - (NSString*)digest {
     NSString * stringToHash = [self rfc2822Representation];
     if (!stringToHash){
-        stringToHash = self.commentedAddress;
+        stringToHash = self.displayAddress;
     }
     if (!stringToHash){
         stringToHash = self.invalidHeaderString;
@@ -207,7 +207,7 @@
 
 -(BOOL) isEqualTo:(id)object{
     if ([object isKindOfClass:[MKEmailAddress class]]){
-        return [self.commentedAddress isEqualToString:[(MKEmailAddress*)object commentedAddress]];
+        return [self.displayAddress isEqualToString:[(MKEmailAddress*)object displayAddress]];
     }
     else {
         return NO;
@@ -215,7 +215,7 @@
 }
 -(BOOL) isEqual:(id)object{
     if ([object isKindOfClass:[MKEmailAddress class]]){
-        return [self.commentedAddress isEqualToString:[(MKEmailAddress*)object commentedAddress]];
+        return [self.displayAddress isEqualToString:[(MKEmailAddress*)object displayAddress]];
     }
     else {
         return NO;
@@ -224,7 +224,7 @@
 
 
 -(NSUInteger) hash{
-    return [self.commentedAddress hash];
+    return [self.displayAddress hash];
 }
 
 
@@ -258,7 +258,7 @@
     }
 }
 
--(NSString*)commentedAddress{
+-(NSString*)displayAddress{
     if (self.addressComment){
         if (self.userAtDomain){
             return [NSString stringWithFormat:@"%@ <%@>",self.addressComment,self.userAtDomain];
@@ -271,7 +271,7 @@
 }
 
 -(NSString *)description{
-    NSString * commentedAddress = self.commentedAddress;
+    NSString * commentedAddress = self.displayAddress;
     if (commentedAddress){
         return [NSString stringWithFormat:@"<%@: %p> %@",[self class],self,commentedAddress];
     }
@@ -288,11 +288,13 @@
     return nil;
 }
 
--(NSString*)displayName{
+- (NSString*)displayName {
     return [self.addressComment decodedMimeEncodedString]?:self.userAtDomain;
 }
--(BOOL)isValid{
+
+- (BOOL)valid {
     return YES;
 }
+
 @end
 
