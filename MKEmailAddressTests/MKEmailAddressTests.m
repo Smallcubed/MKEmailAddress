@@ -21,7 +21,7 @@
 @end
 
 @interface FakeMultiValue : NSObject
-- (id)valueForProperty:(NSString *)property;
+- (id)valueForIdentifier:(NSString *)identifier;
 - (NSString *)primaryIdentifier;
 @end
 
