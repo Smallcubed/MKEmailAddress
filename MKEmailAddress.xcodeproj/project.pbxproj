@@ -19,7 +19,9 @@
 		3227C4A51B726596004702A4 /* NSString+MimeEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 3227C4A01B726596004702A4 /* NSString+MimeEncoding.m */; };
 		3227C4A71B7268AB004702A4 /* testAddresses.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3227C4A61B7268AB004702A4 /* testAddresses.txt */; };
 		329296981B9A446300A874A6 /* NSData+MimeWordDecoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 329296971B9A446300A874A6 /* NSData+MimeWordDecoding.m */; };
-		D1BAC2F11BDA74AC007FBEA8 /* testAddresses.json in Resources */ = {isa = PBXBuildFile; fileRef = D1BAC2F01BDA74AC007FBEA8 /* testAddresses.json */; };
+		D25FD2431F20E56D00A4B96E /* testAddresses.json in Resources */ = {isa = PBXBuildFile; fileRef = D25FD2421F20E45F00A4B96E /* testAddresses.json */; };
+		D2C76C341F2209F000C55989 /* OCMock.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2C76C331F2209E000C55989 /* OCMock.framework */; };
+		D2C76C361F220A0300C55989 /* OCMock.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = D2C76C331F2209E000C55989 /* OCMock.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +33,20 @@
 			remoteInfo = MKEmailAddress;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D2C76C351F2209F600C55989 /* Copy Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D2C76C361F220A0300C55989 /* OCMock.framework in Copy Frameworks */,
+			);
+			name = "Copy Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		3227C4741B7264FA004702A4 /* MKEmailAddress.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MKEmailAddress.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -56,7 +72,8 @@
 		3227C4A61B7268AB004702A4 /* testAddresses.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = testAddresses.txt; sourceTree = "<group>"; };
 		329296961B9A446300A874A6 /* NSData+MimeWordDecoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+MimeWordDecoding.h"; sourceTree = "<group>"; };
 		329296971B9A446300A874A6 /* NSData+MimeWordDecoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+MimeWordDecoding.m"; sourceTree = "<group>"; };
-		D1BAC2F01BDA74AC007FBEA8 /* testAddresses.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = testAddresses.json; sourceTree = "<group>"; };
+		D25FD2421F20E45F00A4B96E /* testAddresses.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = testAddresses.json; sourceTree = "<group>"; };
+		D2C76C331F2209E000C55989 /* OCMock.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = OCMock.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +88,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2C76C341F2209F000C55989 /* OCMock.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -122,8 +140,9 @@
 			children = (
 				3227C48B1B7264FA004702A4 /* MKEmailAddressTests.m */,
 				3227C48D1B7264FA004702A4 /* Info.plist */,
+				D25FD2421F20E45F00A4B96E /* testAddresses.json */,
 				3227C4A61B7268AB004702A4 /* testAddresses.txt */,
-				D1BAC2F01BDA74AC007FBEA8 /* testAddresses.json */,
+				D2C76C331F2209E000C55989 /* OCMock.framework */,
 			);
 			path = MKEmailAddressTests;
 			sourceTree = "<group>";
@@ -174,6 +193,7 @@
 				3227C4831B7264FA004702A4 /* Sources */,
 				3227C4841B7264FA004702A4 /* Frameworks */,
 				3227C4851B7264FA004702A4 /* Resources */,
+				D2C76C351F2209F600C55989 /* Copy Frameworks */,
 			);
 			buildRules = (
 			);
@@ -191,7 +211,7 @@
 		3227C46C1B7264F9004702A4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = indev;
 				TargetAttributes = {
 					3227C4731B7264FA004702A4 = {
@@ -236,7 +256,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D1BAC2F11BDA74AC007FBEA8 /* testAddresses.json in Resources */,
+				D25FD2431F20E56D00A4B96E /* testAddresses.json in Resources */,
 				3227C4A71B7268AB004702A4 /* testAddresses.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -297,13 +317,21 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -340,13 +368,21 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -397,6 +433,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/MKEmailAddressTests",
+				);
 				INFOPLIST_FILE = MKEmailAddressTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ca.indev.MKEmailAddressTests;
@@ -410,6 +450,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/MKEmailAddressTests",
+				);
 				INFOPLIST_FILE = MKEmailAddressTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ca.indev.MKEmailAddressTests;

@@ -7,44 +7,40 @@
 //
 
 #import <Foundation/Foundation.h>
-@class MKEmailAddress;
+#import <AddressBook/AddressBook.h>
 
 #if __has_feature(objc_generics)
-
 #define MKEmailAddressArray NSArray <MKEmailAddress*>
 #define MKEmailAddressMutableArray NSMutableArray <MKEmailAddress*>
-
 #else
-
 #define MKEmailAddressArray NSArray
 #define MKEmailAddressMutableArray NSMutableArray
-
 #endif
 
 @interface MKEmailAddress:NSObject <NSCopying>
 
-@property(strong) NSString * addressComment;
-@property(strong) NSString * userName;
-@property(strong) NSString * domain;
-@property(readonly) NSString * commentedAddress;
-@property(readonly) NSString * userAtDomain;
-@property(readonly) NSString * displayName;
-@property(strong) NSString * invalidHeaderString;
-@property(readonly) NSString * digest;
+@property (strong) NSString * _Nullable addressComment;
+@property (strong) NSString * _Nullable userName;
+@property (strong) NSString * _Nullable domain;
+@property (strong) NSString * _Nullable invalidRawAddress;
 
-#ifndef NS_DESIGNATED_INITIALIZER
-#define NS_DESIGNATED_INITIALIZER 
-#endif
+@property (readonly) NSString * _Nullable displayAddress;
+@property (readonly) NSString * _Nullable invertedDisplayAddress;
+@property (readonly) NSString * _Nullable userAtDomain;
+@property (readonly) NSString * _Nullable displayName;
+@property (readonly) NSString * _Nullable digest;
+@property (readonly) NSString * _Nullable rfc2822Representation;
+@property (readonly) BOOL valid;
 
--(instancetype) initWithInvalidHeaderString:(NSString*)headerString;
--(instancetype) initWithAddressComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart ;
--(instancetype) initWithCommentedAddress:(NSString*)commentedAddress;
-+(NSString*)rfc2822RepresentationForAddresses:(MKEmailAddressArray *)addresses;
-+(MKEmailAddressArray*)emailAddressesFromHeaderValue:(NSString*)headerValue;
-+(MKEmailAddress*) addressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart;
+- (instancetype _Nullable)initWithAddressComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart;
+- (instancetype _Nullable)initWithRawAddress:(NSString * _Nonnull)rawAddress;
 
++ (MKEmailAddressArray * _Nullable)emailAddressesFromHeaderValue:(NSString * _Nonnull)headerValue;
++ (MKEmailAddress * _Nullable)emailAddressWithRawAddress:(NSString * _Nonnull)rawAddress;
++ (MKEmailAddress * _Nullable)emailAddressWithComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart;
++ (MKEmailAddress * _Nullable)emailAddressWithABPerson:(ABPerson * _Nonnull)person forIdentifier:(NSString * _Nonnull)identifier;
 
--(NSString*)rfc2822Representation;
--(BOOL)isValid;
++ (NSString * _Nullable)rfc2822RepresentationForAddresses:(MKEmailAddressArray * _Nonnull)addresses;
+
 @end
 
