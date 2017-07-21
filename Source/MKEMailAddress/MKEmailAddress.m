@@ -57,6 +57,9 @@
 				self.invalidRawAddress = [self.invalidRawAddress stringByAppendingFormat:@"@%@", domainPart];
 			}
 			self.invalidRawAddress = [self.invalidRawAddress stringByAppendingString:@">"];
+			self.addressComment = nil;
+			self.userName = nil;
+			self.domain = nil;
 		}
     }
     return self;
@@ -91,25 +94,6 @@
 
 + (MKEmailAddress *)emailAddressWithRawAddress:(NSString *)rawAddress {
 	return [[self alloc] initWithRawAddress:rawAddress];
-}
-
-+ (MKEmailAddress *)emailAddressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier {
-	if ((person == nil) || (identifier == nil)) {
-		return nil;
-	}
-	ABMultiValue * addressValues = [person valueForProperty:kABEmailProperty];
-	NSString * addressString = [addressValues valueForIdentifier:identifier];
-	NSScanner * scanner = [NSScanner scannerWithString:addressString];
-	NSString * displayName = nil;
-	NSString * userName = nil;
-	NSString * domain = nil;
-	NSError * error = nil;
-	[scanner scanRFC2822EmailAddressIntoDisplayName:&displayName localName:&userName domain:&domain error:&error];
-	if (error == nil) {
-		displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
-		return [[self class] emailAddressWithComment:displayName userName:userName domain:domain];
-	}
-	return nil;
 }
 
 + (NSArray *)emailAddressesFromHeaderValue:(NSString *)headerValue {
@@ -160,6 +144,27 @@
 	return nil;
 }
 
++ (MKEmailAddress *)emailAddressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier {
+	NSString * useIdentifier = identifier;
+	ABMultiValue * addressValues = [person valueForProperty:kABEmailProperty];
+	if (useIdentifier.length == 0) {
+		useIdentifier = addressValues.primaryIdentifier;
+	}
+	if (useIdentifier.length == 0) {
+		return nil;
+	}
+	NSString * addressString = [addressValues valueForIdentifier:useIdentifier];
+	NSRange atRange = [addressString rangeOfString:@"@"];
+	NSString * displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
+	NSString * userName = nil;
+	NSString * domain = addressString;
+	if (atRange.location != NSNotFound) {
+		userName = [addressString substringToIndex:atRange.location];
+		domain = [addressString substringFromIndex:(atRange.location + atRange.length)];
+	}
+	return [[self class] emailAddressWithComment:displayName userName:userName domain:domain];
+}
+
 
 #pragma mark - Accessors
 
@@ -174,67 +179,28 @@
     return [stringToHash MKEshortSHAHashString];
 }
 
-#pragma mark NSCopying, Equality
-
-- (MKEmailAddress *)copyWithZone:(NSZone*)aZone {
-    return [[MKEmailAddress alloc] initWithAddressComment:self.addressComment userName:self.userName domain:self.domain];
-}
-
-- (BOOL)isEqualTo:(id)object {
-    if ([object isKindOfClass:[MKEmailAddress class]]) {
-        return [self.displayAddress isEqualToString:((MKEmailAddress *)object).displayAddress];
-    }
-    else {
-        return NO;
-    }
-}
-- (BOOL)isEqual:(id)object {
-	return [self isEqualTo:object];
-}
-
-- (NSUInteger)hash {
-    return [self.displayAddress hash];
-}
-
-- (NSString *)rfc2822Representation {
-    if (self.addressComment){
-        NSString * escapedQuotedComment = [self.addressComment stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
-        
-        if (self.userAtDomain){
-            if ([self.addressComment canBeConvertedToEncoding:NSASCIIStringEncoding]){
-                return [NSString stringWithFormat:@"\"%@\" <%@>",escapedQuotedComment,self.userAtDomain];
-            }
-            else{
-                NSString * encodedComment = [NSString mimeWordWithString:self.addressComment preferredEncoding:NSISOLatin1StringEncoding encodingUsed:nil];
-                return [NSString stringWithFormat:@"\"%@\" <%@>",encodedComment,self.userAtDomain];
-            }
-        }
-        else{
-            // technically this is not RFC2822 compliant as there is no user@domain portion
-            if ([self.addressComment canBeConvertedToEncoding:NSASCIIStringEncoding]){
-                return [NSString stringWithFormat:@"\"%@\"",escapedQuotedComment];
-            }
-            else{
-                NSString * encodedComment = [NSString mimeWordWithString:self.addressComment preferredEncoding:NSISOLatin1StringEncoding encodingUsed:nil];
-                return [NSString stringWithFormat:@"\"%@\"",encodedComment];
-            }
-        }
-    }
-    else{
-        return self.userAtDomain;
-    }
-}
-
 - (NSString *)displayAddress {
-    if (self.addressComment) {
-        if (self.userAtDomain) {
-            return [NSString stringWithFormat:@"%@ <%@>",self.addressComment,self.userAtDomain];
-        }
-    }
-    else if(self.userAtDomain) {
-        return self.userAtDomain;
-    }
-   return nil;
+	if (self.addressComment) {
+		if (self.userAtDomain) {
+			return [NSString stringWithFormat:@"%@ <%@>",self.addressComment,self.userAtDomain];
+		}
+	}
+	else if(self.userAtDomain) {
+		return self.userAtDomain;
+	}
+	return nil;
+}
+
+- (NSString *)invertedDisplayAddress {
+	if (self.addressComment) {
+		if (self.userAtDomain) {
+			return [NSString stringWithFormat:@"%@ (%@)", self.userAtDomain, self.addressComment];
+		}
+	}
+	else if(self.userAtDomain) {
+		return self.userAtDomain;
+	}
+	return nil;
 }
 
 - (NSString *)description {
@@ -262,10 +228,62 @@
 	return (self.invalidRawAddress.length > 0)?NO:YES;
 }
 
+
+#pragma mark - NSCopying, Equality
+
+- (MKEmailAddress *)copyWithZone:(NSZone*)aZone {
+	return [[MKEmailAddress alloc] initWithAddressComment:self.addressComment userName:self.userName domain:self.domain];
+}
+
+- (BOOL)isEqualTo:(id)object {
+	if ([object isKindOfClass:[MKEmailAddress class]]) {
+		return [self.displayAddress isEqualToString:((MKEmailAddress *)object).displayAddress];
+	}
+	else {
+		return NO;
+	}
+}
+- (BOOL)isEqual:(id)object {
+	return [self isEqualTo:object];
+}
+
+- (NSUInteger)hash {
+	return [self.displayAddress hash];
+}
+
+- (NSString *)rfc2822Representation {
+	if (self.addressComment){
+		NSString * escapedQuotedComment = [self.addressComment stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
+		
+		if (self.userAtDomain){
+			if ([self.addressComment canBeConvertedToEncoding:NSASCIIStringEncoding]){
+				return [NSString stringWithFormat:@"\"%@\" <%@>",escapedQuotedComment,self.userAtDomain];
+			}
+			else{
+				NSString * encodedComment = [NSString mimeWordWithString:self.addressComment preferredEncoding:NSISOLatin1StringEncoding encodingUsed:nil];
+				return [NSString stringWithFormat:@"\"%@\" <%@>",encodedComment,self.userAtDomain];
+			}
+		}
+		else{
+			// technically this is not RFC2822 compliant as there is no user@domain portion
+			if ([self.addressComment canBeConvertedToEncoding:NSASCIIStringEncoding]){
+				return [NSString stringWithFormat:@"\"%@\"",escapedQuotedComment];
+			}
+			else{
+				NSString * encodedComment = [NSString mimeWordWithString:self.addressComment preferredEncoding:NSISOLatin1StringEncoding encodingUsed:nil];
+				return [NSString stringWithFormat:@"\"%@\"",encodedComment];
+			}
+		}
+	}
+	else{
+		return self.userAtDomain;
+	}
+}
+
 @end
 
 
-#pragma Category Stuff
+#pragma mark - Category Stuff
 
 @implementation NSData(MKE_MKEmailAddress)
 - (NSString *)MKEpathSafeBase64EncodedString {

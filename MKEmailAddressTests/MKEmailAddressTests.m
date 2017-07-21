@@ -7,12 +7,27 @@
 //
 
 #import <XCTest/XCTest.h>
+#import <OCMock/OCMock.h>
+
 #import "MKEmailAddress.h"
 #import "NSString+MimeEncoding.h"
 #import "NSData+MimeWordDecoding.h"
 
-@interface MKEmailAddressTests : XCTestCase
+#define TEST_AB_IDENTIFIER @"TEST_AB_IDENTIFIER"
 
+
+@interface FakePerson:NSObject
+- (id)valueForProperty:(NSString *)property;
+@end
+
+@interface FakeMultiValue : NSObject
+- (id)valueForProperty:(NSString *)property;
+- (NSString *)primaryIdentifier;
+@end
+
+@interface MKEmailAddressTests : XCTestCase
+@property (strong) id mockPerson;
+@property (strong) id mockMultiValue;
 @end
 
 @implementation MKEmailAddressTests
@@ -25,6 +40,7 @@
 	XCTAssertNotNil(newAddress, @"Could not create email address object.");
 	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
 	XCTAssertEqualObjects(newAddress.displayAddress, @"John Doe <john@doe.me>", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me (John Doe)", @"Incorrect inverted display address.");
 	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"\"John Doe\" <john@doe.me>", @"Incorrect rfc2822 representation.");
 	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
 	XCTAssertNil(newAddress.invalidRawAddress, @"The raw input should be nil.");
@@ -35,6 +51,7 @@
 	XCTAssertNotNil(newAddress, @"Could not create email address object.");
 	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
 	XCTAssertEqualObjects(newAddress.displayAddress, @"John Doe <john@doe.me>", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me (John Doe)", @"Incorrect inverted display address.");
 	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"\"John Doe\" <john@doe.me>", @"Incorrect rfc2822 representation.");
 	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
 	XCTAssertNil(newAddress.invalidRawAddress, @"The raw input should be nil.");
@@ -45,6 +62,7 @@
 	XCTAssertNotNil(newAddress, @"Could not create email address object.");
 	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
 	XCTAssertEqualObjects(newAddress.displayAddress, @"john@doe.me", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me", @"Incorrect inverted display address.");
 	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"john@doe.me", @"Incorrect rfc2822 representation.");
 	XCTAssertNil(newAddress.addressComment, @"Comment is not nil.");
 	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
@@ -56,6 +74,7 @@
 	XCTAssertNotNil(newAddress, @"Could not create email address object.");
 	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
 	XCTAssertEqualObjects(newAddress.displayAddress, @"John Doe <john@doe.me>", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me (John Doe)", @"Incorrect inverted display address.");
 	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"\"John Doe\" <john@doe.me>", @"Incorrect rfc2822 representation.");
 	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
 	XCTAssertNil(newAddress.invalidRawAddress, @"The raw input should be nil.");
@@ -66,6 +85,7 @@
 	XCTAssertNotNil(newAddress, @"Could not create email address object.");
 	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
 	XCTAssertEqualObjects(newAddress.displayAddress, @"john@doe.me", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me", @"Incorrect inverted display address.");
 	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"john@doe.me", @"Incorrect rfc2822 representation.");
 	XCTAssertNil(newAddress.addressComment, @"Comment is not nil.");
 	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
@@ -79,6 +99,7 @@
 	XCTAssertNotNil(newAddress, @"Could not create email address object.");
 	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
 	XCTAssertEqualObjects(newAddress.displayAddress, @"John Doe <john@doe.me>", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me (John Doe)", @"Incorrect inverted display address.");
 	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"\"John Doe\" <john@doe.me>", @"Incorrect rfc2822 representation.");
 	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
 	XCTAssertNil(newAddress.invalidRawAddress, @"The raw input should be nil.");
@@ -91,15 +112,73 @@
 	XCTAssertNotNil(newAddress, @"Could not create email address object.");
 	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
 	XCTAssertEqualObjects(newAddress.displayAddress, @"john@doe.me", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me", @"Incorrect inverted display address.");
 	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"john@doe.me", @"Incorrect rfc2822 representation.");
 	XCTAssertNil(newAddress.addressComment, @"Comment is not nil.");
 	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
 	XCTAssertNil(newAddress.invalidRawAddress, @"The raw input should be nil.");
 }
 
+- (void)testMultiHeaderCreationWithThreeAddresses {
+	NSArray <MKEmailAddress *> * newAddresses = [MKEmailAddress emailAddressesFromHeaderValue:@"john@doe.me, Jane Smith <jsmith@smallcubed.com>, \"No Name\" <no-name@smallcubed.com>"];
+	XCTAssertEqual(newAddresses.count, 3, @"Did not get three emailAddress object.");
+	MKEmailAddress * newAddress = newAddresses.firstObject;
+	XCTAssertNotNil(newAddress, @"First email address object is nil.");
+	XCTAssertEqualObjects(newAddress.displayAddress, @"john@doe.me", @"Incorrectly formatted address.");
+	newAddress = newAddresses[1];
+	XCTAssertNotNil(newAddress, @"Second email address object is nil.");
+	XCTAssertEqualObjects(newAddress.displayAddress, @"Jane Smith <jsmith@smallcubed.com>", @"Incorrectly formatted address.");
+	newAddress = newAddresses[2];
+	XCTAssertNotNil(newAddress, @"Third email address object is nil.");
+	XCTAssertEqualObjects(newAddress.displayAddress, @"No Name <no-name@smallcubed.com>", @"Incorrectly formatted address.");
+}
+
+- (void)testMultiHeaderCreationWithThreeAddressesOneInvalid {
+	NSArray <MKEmailAddress *> * newAddresses = [MKEmailAddress emailAddressesFromHeaderValue:@"john@doe.me, Jane Smith <jsmith@smallcubed.com>, invalid@smallcu"];
+	XCTAssertEqual(newAddresses.count, 3, @"Did not get three emailAddress object.");
+	MKEmailAddress * newAddress = newAddresses.firstObject;
+	XCTAssertNotNil(newAddress, @"First email address object is nil.");
+	XCTAssertTrue(newAddress.valid, @"The first email should be valid.");
+	XCTAssertEqualObjects(newAddress.displayAddress, @"john@doe.me", @"Incorrectly formatted address.");
+	newAddress = newAddresses[1];
+	XCTAssertNotNil(newAddress, @"Second email address object is nil.");
+	XCTAssertTrue(newAddress.valid, @"The second email should be valid.");
+	XCTAssertEqualObjects(newAddress.displayAddress, @"Jane Smith <jsmith@smallcubed.com>", @"Incorrectly formatted address.");
+	newAddress = newAddresses[2];
+	XCTAssertNotNil(newAddress, @"Third email address object is nil.");
+	XCTAssertFalse(newAddress.valid, @"The third email should be invalid.");
+	XCTAssertEqualObjects(newAddress.invalidRawAddress, @" <invalid@smallcu>", @"Incorrect invalidRawAddress.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
+}
+
+- (void)testCreationWithABPerson {
+	[self setupPersonMockWithDict:@{@"first": @"John", @"last": @"Doe", @"email": @"john@doe.me", @"id": TEST_AB_IDENTIFIER}];
+	MKEmailAddress * newAddress = [MKEmailAddress emailAddressWithABPerson:self.mockPerson forIdentifier:TEST_AB_IDENTIFIER];
+	XCTAssertNotNil(newAddress, @"Could not create email address object.");
+	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
+	XCTAssertEqualObjects(newAddress.displayAddress, @"John Doe <john@doe.me>", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me (John Doe)", @"Incorrect inverted display address.");
+	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"\"John Doe\" <john@doe.me>", @"Incorrect rfc2822 representation.");
+	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
+	XCTAssertNil(newAddress.invalidRawAddress, @"The raw input should be nil.");
+}
+
+- (void)testCreationWithABPersonEmptyIdentifer {
+	[self setupPersonMockWithDict:@{@"first": @"John", @"last": @"Doe", @"email": @"john@doe.me", @"id": TEST_AB_IDENTIFIER, @"primaryID": TEST_AB_IDENTIFIER}];
+	MKEmailAddress * newAddress = [MKEmailAddress emailAddressWithABPerson:self.mockPerson forIdentifier:@""];
+	XCTAssertNotNil(newAddress, @"Could not create email address object.");
+	XCTAssertEqualObjects(newAddress.userAtDomain, @"john@doe.me", @"Incorrect email address.");
+	XCTAssertEqualObjects(newAddress.displayAddress, @"John Doe <john@doe.me>", @"Incorrect formatted address.");
+	XCTAssertEqualObjects(newAddress.invertedDisplayAddress, @"john@doe.me (John Doe)", @"Incorrect inverted display address.");
+	XCTAssertEqualObjects(newAddress.rfc2822Representation, @"\"John Doe\" <john@doe.me>", @"Incorrect rfc2822 representation.");
+	XCTAssertTrue(newAddress.valid, @"Address is marked as invalid.");
+	XCTAssertNil(newAddress.invalidRawAddress, @"The raw input should be nil.");
+}
 
 
-#pragma mark - Creationg Failure Tests
+#pragma mark - Creation Failure Tests
 
 - (void)testFailureCreationFromInvalidParts {
 	MKEmailAddress * newAddress = [[MKEmailAddress alloc] initWithAddressComment:@"John Doe" userName:@"john" domain:@"abc"];
@@ -107,6 +186,9 @@
 	XCTAssertFalse(newAddress.valid, @"Address should be marked as valid.");
 	XCTAssertNotNil(newAddress.invalidRawAddress, @"The raw input is not nil.");
 	XCTAssertEqualObjects(newAddress.invalidRawAddress, @"John Doe <john@abc>", @"Not the expected invalid raw input.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
 }
 
 - (void)testBasicFailureCreatingFromRawEmail {
@@ -115,6 +197,9 @@
 	XCTAssertFalse(newAddress.valid, @"Address should be marked as invalid.");
 	XCTAssertNotNil(newAddress.invalidRawAddress, @"The raw input is nil.");
 	XCTAssertEqualObjects(newAddress.invalidRawAddress, @"John Doe <john@abc>", @"Not the expected invalid raw input.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
 }
 
 - (void)testBasicFailureCreatingFromRawEmailWithoutComment {
@@ -123,6 +208,9 @@
 	XCTAssertFalse(newAddress.valid, @"Address should be marked as invalid.");
 	XCTAssertNotNil(newAddress.invalidRawAddress, @"The raw input is nil.");
 	XCTAssertEqualObjects(newAddress.invalidRawAddress, @"abc <>", @"Not the expected invalid raw input.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
 }
 
 - (void)testBasicFailureClassMethodCreationFromRawEmail {
@@ -131,6 +219,9 @@
 	XCTAssertFalse(newAddress.valid, @"Address should be marked as invalid.");
 	XCTAssertNotNil(newAddress.invalidRawAddress, @"The raw input is nil.");
 	XCTAssertEqualObjects(newAddress.invalidRawAddress, @"John Doe <john@abc>", @"Not the expected invalid raw input.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
 }
 
 - (void)testBasicFailureClassMethodCreationFromRawEmailWithoutComment {
@@ -139,6 +230,9 @@
 	XCTAssertFalse(newAddress.valid, @"Address should be marked as invalid.");
 	XCTAssertNotNil(newAddress.invalidRawAddress, @"The raw input is nil.");
 	XCTAssertEqualObjects(newAddress.invalidRawAddress, @"abc <>", @"Not the expected invalid raw input.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
 }
 
 - (void)testBasicFailureMultiHeaderCreationFromRawEmail {
@@ -149,6 +243,9 @@
 	XCTAssertFalse(newAddress.valid, @"Address should be marked as invalid.");
 	XCTAssertNotNil(newAddress.invalidRawAddress, @"The raw input is nil.");
 	XCTAssertEqualObjects(newAddress.invalidRawAddress, @"John Doe <john@abc>", @"Not the expected invalid raw input.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
 }
 
 - (void)testBasicFailureMultiHeaderCreationFromRawEmailWithoutComment {
@@ -159,6 +256,37 @@
 	XCTAssertFalse(newAddress.valid, @"Address should be marked as invalid.");
 	XCTAssertNotNil(newAddress.invalidRawAddress, @"The raw input is nil.");
 	XCTAssertEqualObjects(newAddress.invalidRawAddress, @"abc <>", @"Not the expected invalid raw input.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
+}
+
+- (void)testCreationWithABPersonInvalidEmail {
+	[self setupPersonMockWithDict:@{@"first": @"John", @"last": @"Doe", @"email": @"abc", @"id": TEST_AB_IDENTIFIER}];
+	MKEmailAddress * newAddress = [MKEmailAddress emailAddressWithABPerson:self.mockPerson forIdentifier:TEST_AB_IDENTIFIER];
+	XCTAssertNotNil(newAddress, @"Created email address from illegal values.");
+	XCTAssertFalse(newAddress.valid, @"Address should be marked as invalid.");
+	XCTAssertNotNil(newAddress.invalidRawAddress, @"The raw input is nil.");
+	XCTAssertEqualObjects(newAddress.invalidRawAddress, @"John Doe <@abc>", @"Not the expected invalid raw input.");
+	XCTAssertNil(newAddress.userName, @"UserName is not nil.");
+	XCTAssertNil(newAddress.addressComment, @"AddressComment is not nil.");
+	XCTAssertNil(newAddress.domain, @"Domain is not nil.");
+}
+
+- (void)testCreationWithABPersonWithoutEmail {
+	[self setupPersonMockWithDict:@{@"first": @"John", @"last": @"Doe", @"primaryID": @""}];
+	MKEmailAddress * newAddress = [MKEmailAddress emailAddressWithABPerson:self.mockPerson forIdentifier:@""];
+	XCTAssertNil(newAddress, @"Created email address from Empty Person record.");
+}
+
+
+#pragma mark Representation Testing
+
+- (void)testRepresentationsForEmailAddressObjects {
+	NSArray <MKEmailAddress *> * newAddresses = [MKEmailAddress emailAddressesFromHeaderValue:@"John Doe <john@doe.me>, Jane Smith <jsmith@smallcubed.com>, an-email@smallcubed.com"];
+	XCTAssertEqual(newAddresses.count, 3, @"Did not get three emailAddress object.");
+	NSString * rfcRep = [MKEmailAddress rfc2822RepresentationForAddresses:newAddresses];
+	XCTAssertEqualObjects(@"\"John Doe\" <john@doe.me>,\"Jane Smith\" <jsmith@smallcubed.com>,an-email@smallcubed.com", rfcRep, @"RFC String is incorrect.");
 }
 
 
@@ -205,4 +333,35 @@
 	[super tearDown];
 }
 
+- (void)setupPersonMockWithDict:(NSDictionary *)dict {
+	//	Mocking Setup
+	ABPerson * personObject = (ABPerson *)[FakePerson new];
+	ABMultiValue * multiValue = (ABMultiValue *)[FakeMultiValue new];
+	self.mockPerson = OCMPartialMock(personObject);
+	self.mockMultiValue = OCMPartialMock(multiValue);
+	OCMStub([self.mockPerson valueForProperty:kABEmailProperty]).andReturn(self.mockMultiValue);
+	OCMStub([self.mockPerson valueForProperty:kABFirstNameProperty]).andReturn(dict[@"first"]);
+	OCMStub([self.mockPerson valueForProperty:kABLastNameProperty]).andReturn(dict[@"last"]);
+	if (dict[@"email"]) {
+		OCMStub([self.mockMultiValue valueForIdentifier:dict[@"id"]]).andReturn(dict[@"email"]);
+	}
+	if (dict[@"primaryID"]) {
+		OCMStub([self.mockMultiValue primaryIdentifier]).andReturn(dict[@"primaryID"]);
+	}
+}
+
 @end
+
+
+#pragma mark - FakeMockObjects!
+
+@implementation FakePerson
+- (id)valueForProperty:(NSString *)property { return nil; }
+@end
+
+@implementation FakeMultiValue
+- (id)valueForIdentifier:(NSString *)identifier { return nil; }
+- (NSString *)primaryIdentifier { return nil; }
+@end
+
+

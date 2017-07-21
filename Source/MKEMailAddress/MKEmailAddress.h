@@ -25,6 +25,7 @@
 @property (strong) NSString * _Nullable invalidRawAddress;
 
 @property (readonly) NSString * _Nullable displayAddress;
+@property (readonly) NSString * _Nullable invertedDisplayAddress;
 @property (readonly) NSString * _Nullable userAtDomain;
 @property (readonly) NSString * _Nullable displayName;
 @property (readonly) NSString * _Nullable digest;
