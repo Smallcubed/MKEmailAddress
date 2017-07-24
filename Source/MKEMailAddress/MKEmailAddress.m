@@ -27,17 +27,26 @@
 @end
 
 
+@interface MKEmailAddress ()
+@property (strong, readwrite) ABPerson * _Nullable addressBookPerson;
+- (instancetype _Nullable)initWithAddressComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart person:(ABPerson * _Nullable)person;
+@end
+
 @implementation MKEmailAddress
 
 #pragma mark - Instance Creation
 
 - (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *)userPart domain:(NSString *)domainPart {
+	ABPerson * foundPerson = nil;
+	ABSearchElement * searchElement = [ABPerson searchElementForProperty:kABEmailProperty label:nil key:nil value:[NSString stringWithFormat:@"%@@%@", userPart, domainPart] comparison:kABPrefixMatchCaseInsensitive];
+	NSArray * records = [[ABAddressBook sharedAddressBook] recordsMatchingSearchElement:searchElement];
+	foundPerson = records.firstObject;
+	return [self initWithAddressComment:commentPart userName:userPart domain:domainPart person:foundPerson];
+}
+
+- (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *)userPart domain:(NSString *)domainPart person:(ABPerson *)person {
     self = [self init];
     if (self) {
-        self.addressComment = commentPart;
-        self.userName = userPart;
-        self.domain = domainPart;
-		
 		BOOL isValid = YES;
 		if ((domainPart.length == 0) || (userPart.length == 0)) {
 			isValid = NO;
@@ -50,7 +59,13 @@
 				isValid = NO;
 			}
 		}
-		if (!isValid) {
+		if (isValid) {
+			self.addressComment = commentPart;
+			self.userName = userPart;
+			self.domain = domainPart;
+			self.addressBookPerson = person;
+		}
+		else {
 			self.invalidRawAddress = [NSString stringWithFormat:@"%@ <", commentPart?:@""];
 			self.invalidRawAddress = [self.invalidRawAddress stringByAppendingFormat:@"%@", userPart?:@""];
 			if (domainPart) {
@@ -87,9 +102,7 @@
 #pragma mark - Class Creation
 
 + (MKEmailAddress *)emailAddressWithComment:(NSString*)commentPart userName:(NSString*) userPart domain:(NSString*)domainPart {
-	return [[[self class] alloc] initWithAddressComment:commentPart
-											   userName:userPart
-												 domain:domainPart];
+	return [[[self class] alloc] initWithAddressComment:commentPart userName:userPart domain:domainPart];
 }
 
 + (MKEmailAddress *)emailAddressWithRawAddress:(NSString *)rawAddress {
