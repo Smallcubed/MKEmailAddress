@@ -80,7 +80,15 @@
 		self.invalidRawAddress = invalidPart;
 		return self;
 	}
-	return [self initWithAddressComment:displayName userName:userName domain:domain];
+     if (userName && domain){
+         return [self initWithAddressComment:displayName userName:userName domain:domain];
+     }
+     else{
+         self = [self init];
+         self.invalidRawAddress = rawAddress;
+         return self;
+     }
+         
 }
 
 
@@ -158,11 +166,16 @@
 	NSString * displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
 	NSString * userName = nil;
 	NSString * domain = addressString;
-	if (atRange.location != NSNotFound) {
-		userName = [addressString substringToIndex:atRange.location];
-		domain = [addressString substringFromIndex:(atRange.location + atRange.length)];
-	}
-	return [[self class] emailAddressWithComment:displayName userName:userName domain:domain];
+    if (atRange.location != NSNotFound) {
+        userName = [addressString substringToIndex:atRange.location];
+        domain = [addressString substringFromIndex:(atRange.location + atRange.length)];
+    }
+    if (userName && domain){
+        return [[self class] emailAddressWithComment:displayName userName:userName domain:domain];
+    }
+    else{
+        return nil;
+    }
 }
 
 
