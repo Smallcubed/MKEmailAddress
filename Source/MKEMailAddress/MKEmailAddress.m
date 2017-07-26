@@ -67,8 +67,8 @@
 
 - (instancetype)initWithRawAddress:(NSString *)rawAddress {
 	NSString * displayName = nil;
-	NSString * userName = nil;
-	NSString * domain = nil;
+	NSString * userName = @"";
+	NSString * domain = @"";
 	NSString * invalidPart = nil;
     if (rawAddress.length > 0) {
         NSScanner * scanner = [NSScanner scannerWithString:rawAddress];
@@ -80,15 +80,7 @@
 		self.invalidRawAddress = invalidPart;
 		return self;
 	}
-     if (userName && domain){
-         return [self initWithAddressComment:displayName userName:userName domain:domain];
-     }
-     else{
-         self = [self init];
-         self.invalidRawAddress = rawAddress;
-         return self;
-     }
-         
+	 return [self initWithAddressComment:displayName userName:userName domain:domain];
 }
 
 
@@ -164,7 +156,7 @@
 	NSString * addressString = [addressValues valueForIdentifier:useIdentifier];
 	NSRange atRange = [addressString rangeOfString:@"@"];
 	NSString * displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
-	NSString * userName = nil;
+	NSString * userName = @"";
 	NSString * domain = addressString;
     if (atRange.location != NSNotFound) {
         userName = [addressString substringToIndex:atRange.location];
