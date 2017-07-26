@@ -24,6 +24,7 @@
 @property (strong) NSString * _Nullable domain;
 @property (strong) NSString * _Nullable invalidRawAddress;
 
+@property (readonly) ABPerson * _Nullable addressBookPerson;
 @property (readonly) NSString * _Nullable displayAddress;
 @property (readonly) NSString * _Nullable invertedDisplayAddress;
 @property (readonly) NSString * _Nullable userAtDomain;
