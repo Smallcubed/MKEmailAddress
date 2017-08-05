@@ -28,7 +28,7 @@
 
 
 @interface MKEmailAddress ()
-@property (strong, readwrite) ABPerson * _Nullable addressBookPerson;
+@property (strong, readwrite) ABPerson * _Nullable _addressBookPerson_;
 - (instancetype _Nullable)initWithAddressComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart person:(ABPerson * _Nullable)person;
 @end
 
@@ -37,11 +37,7 @@
 #pragma mark - Instance Creation
 
 - (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *)userPart domain:(NSString *)domainPart {
-	ABPerson * foundPerson = nil;
-	ABSearchElement * searchElement = [ABPerson searchElementForProperty:kABEmailProperty label:nil key:nil value:[NSString stringWithFormat:@"%@@%@", userPart, domainPart] comparison:kABPrefixMatchCaseInsensitive];
-	NSArray * records = [[ABAddressBook sharedAddressBook] recordsMatchingSearchElement:searchElement];
-	foundPerson = records.firstObject;
-	return [self initWithAddressComment:commentPart userName:userPart domain:domainPart person:foundPerson];
+	return [self initWithAddressComment:commentPart userName:userPart domain:domainPart person:nil];
 }
 
 - (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *)userPart domain:(NSString *)domainPart person:(ABPerson *)person {
@@ -52,18 +48,23 @@
 			isValid = NO;
 		}
 		else {
-			NSError * error = nil;
-			NSString * domainRegExString = @"^(?:[A-Za-z0-9-]+\\.)+[A-Za-z]{2,}$";
-			NSRegularExpression * regEx = [NSRegularExpression regularExpressionWithPattern:domainRegExString options:NSRegularExpressionCaseInsensitive error:&error];
-			if ([regEx numberOfMatchesInString:domainPart options:0 range:NSMakeRange(0, domainPart.length)] != 1) {
-				isValid = NO;
-			}
+            static NSRegularExpression * regEx = nil;
+            static dispatch_once_t onceToken;
+            dispatch_once(&onceToken, ^{
+                NSString * domainRegExString = @"^(?:[A-Za-z0-9-]+\\.)+[A-Za-z]{2,}$";
+                NSError * error = nil;
+                regEx = [NSRegularExpression regularExpressionWithPattern:domainRegExString options:NSRegularExpressionCaseInsensitive error:&error];
+            });
+            
+            if ([regEx numberOfMatchesInString:domainPart options:0 range:NSMakeRange(0, domainPart.length)] != 1) {
+                isValid = NO;
+            }
 		}
 		if (isValid) {
 			self.addressComment = commentPart;
 			self.userName = userPart;
 			self.domain = domainPart;
-			self.addressBookPerson = person;
+			self._addressBookPerson_ = person;
 		}
 		else {
 			self.invalidRawAddress = [NSString stringWithFormat:@"%@ <", commentPart?:@""];
@@ -240,6 +241,16 @@
 
 - (NSString *)displayName {
     return [self.addressComment decodedMimeEncodedString]?:self.userAtDomain;
+}
+-(ABPerson*)addressBookPerson{
+    ABPerson * foundPerson =self._addressBookPerson_;
+    if (!foundPerson){
+         ABSearchElement * searchElement = [ABPerson searchElementForProperty:kABEmailProperty label:nil key:nil value:[NSString stringWithFormat:@"%@", self.userAtDomain] comparison:kABPrefixMatchCaseInsensitive];
+        NSArray * records = [[ABAddressBook sharedAddressBook] recordsMatchingSearchElement:searchElement];
+        foundPerson = records.firstObject;
+        self._addressBookPerson_ =foundPerson;
+    }
+    return foundPerson;
 }
 
 - (BOOL)valid {
