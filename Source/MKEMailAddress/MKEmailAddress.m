@@ -100,7 +100,7 @@
 }
 
 - (instancetype)initWithPasteboardPropertyList:(NSDictionary <NSString*, NSString*> *)propertyList ofType:(NSPasteboardType)type {
-	return [self initWithAddressComment:propertyList[@"displayName"] userName:propertyList[@"userName"] domain:propertyList[@"domain"]];
+	return [self initWithAddressComment:propertyList[@"addressComment"] userName:propertyList[@"userName"] domain:propertyList[@"domain"]];
 }
 
 
