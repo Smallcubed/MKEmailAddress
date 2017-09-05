@@ -99,6 +99,10 @@
 	 return [self initWithAddressComment:displayName userName:userName domain:domain];
 }
 
+- (instancetype)initWithPasteboardPropertyList:(NSDictionary <NSString*, NSString*> *)propertyList ofType:(NSPasteboardType)type {
+	return [self initWithAddressComment:propertyList[@"displayName"] userName:propertyList[@"userName"] domain:propertyList[@"domain"]];
+}
+
 
 #pragma mark - Class Creation
 
@@ -242,13 +246,13 @@
 - (NSString *)displayName {
     return [self.addressComment decodedMimeEncodedString]?:self.userAtDomain;
 }
--(ABPerson*)addressBookPerson{
-    ABPerson * foundPerson =self._addressBookPerson_;
-    if (!foundPerson){
+- (ABPerson *)addressBookPerson {
+    ABPerson * foundPerson = self._addressBookPerson_;
+    if (!foundPerson) {
          ABSearchElement * searchElement = [ABPerson searchElementForProperty:kABEmailProperty label:nil key:nil value:[NSString stringWithFormat:@"%@", self.userAtDomain] comparison:kABPrefixMatchCaseInsensitive];
         NSArray * records = [[ABAddressBook sharedAddressBook] recordsMatchingSearchElement:searchElement];
         foundPerson = records.firstObject;
-        self._addressBookPerson_ =foundPerson;
+        self._addressBookPerson_ = foundPerson;
     }
     return foundPerson;
 }
@@ -307,6 +311,30 @@
 	else{
 		return self.userAtDomain;
 	}
+}
+
+#pragma mark - Pasteboard Protocols
+
++ (NSArray<NSPasteboardType> *)readableTypesForPasteboard:(NSPasteboard *)pasteboard {
+	return @[MVNPasteboardTypeEmailAddress, NSPasteboardTypeString];
+}
+
++ (NSPasteboardReadingOptions)readingOptionsForType:(NSPasteboardType)type pasteboard:(NSPasteboard *)pasteboard {
+	if ([type isEqualToString:MVNPasteboardTypeEmailAddress]) {
+		return NSPasteboardReadingAsPropertyList;
+	}
+	return NSPasteboardReadingAsString;
+}
+
+- (NSArray<NSPasteboardType> *)writableTypesForPasteboard:(NSPasteboard *)pasteboard {
+	return @[MVNPasteboardTypeEmailAddress, NSPasteboardTypeString];
+}
+
+- (id)pasteboardPropertyListForType:(NSPasteboardType)type {
+	if ([type isEqualToString:MVNPasteboardTypeEmailAddress]) {
+		return @{@"addressComment": self.addressComment?:@"", @"userName": self.userName?:@"", @"domain": self.domain?:@""};
+	}
+	return self.rfc2822Representation;
 }
 
 @end
@@ -372,3 +400,5 @@
 }
 
 @end
+
+NSString * const MVNPasteboardTypeEmailAddress = @"com.smallcubed.MKEmailAddressPasteboardType";

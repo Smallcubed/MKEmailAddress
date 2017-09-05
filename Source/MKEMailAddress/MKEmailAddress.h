@@ -17,7 +17,7 @@
 #define MKEmailAddressMutableArray NSMutableArray
 #endif
 
-@interface MKEmailAddress:NSObject <NSCopying>
+@interface MKEmailAddress:NSObject <NSCopying, NSPasteboardReading, NSPasteboardWriting>
 
 @property (strong) NSString * _Nullable addressComment;
 @property (strong) NSString * _Nullable userName;
@@ -44,4 +44,6 @@
 + (NSString * _Nullable)rfc2822RepresentationForAddresses:(MKEmailAddressArray * _Nonnull)addresses;
 
 @end
+
+extern NSString * _Nonnull const MVNPasteboardTypeEmailAddress;
 
