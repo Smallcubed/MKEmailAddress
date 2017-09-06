@@ -25,6 +25,7 @@
 @property (strong) NSString * _Nullable invalidRawAddress;
 
 @property (readonly) ABPerson * _Nullable addressBookPerson;
+@property (readonly) NSString * _Nullable addressBookIdentifier;
 @property (readonly) NSString * _Nullable displayAddress;
 @property (readonly) NSString * _Nullable invertedDisplayAddress;
 @property (readonly) NSString * _Nullable userAtDomain;
@@ -35,11 +36,12 @@
 
 - (instancetype _Nullable)initWithAddressComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart;
 - (instancetype _Nullable)initWithRawAddress:(NSString * _Nonnull)rawAddress;
+- (instancetype _Nullable)initWithAddressComment:(NSString * _Nullable)commentPart emailAddress:(NSString * _Nonnull)fullAddress;
+- (instancetype _Nullable)initWithABPerson:(ABPerson * _Nonnull)person forIdentifier:(NSString * _Nullable)identifier;
 
 + (MKEmailAddressArray * _Nullable)emailAddressesFromHeaderValue:(NSString * _Nonnull)headerValue;
-+ (MKEmailAddress * _Nullable)emailAddressWithRawAddress:(NSString * _Nonnull)rawAddress;
-+ (MKEmailAddress * _Nullable)emailAddressWithComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart;
-+ (MKEmailAddress * _Nullable)emailAddressWithABPerson:(ABPerson * _Nonnull)person forIdentifier:(NSString * _Nonnull)identifier;
++ (instancetype _Nullable)emailAddressWithRawAddress:(NSString * _Nonnull)rawAddress;
++ (instancetype _Nullable)emailAddressWithComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart;
 
 + (NSString * _Nullable)rfc2822RepresentationForAddresses:(MKEmailAddressArray * _Nonnull)addresses;
 

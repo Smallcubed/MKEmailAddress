@@ -28,8 +28,8 @@
 
 
 @interface MKEmailAddress ()
-@property (strong, readwrite) ABPerson * _Nullable _addressBookPerson_;
-- (instancetype _Nullable)initWithAddressComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart person:(ABPerson * _Nullable)person;
+@property (strong) ABPerson * _Nullable _addressBookPerson_;
+@property (strong) NSString * _Nullable _addressBookIdentifier_;
 @end
 
 @implementation MKEmailAddress
@@ -37,10 +37,6 @@
 #pragma mark - Instance Creation
 
 - (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *)userPart domain:(NSString *)domainPart {
-	return [self initWithAddressComment:commentPart userName:userPart domain:domainPart person:nil];
-}
-
-- (instancetype)initWithAddressComment:(NSString *)commentPart userName:(NSString *)userPart domain:(NSString *)domainPart person:(ABPerson *)person {
     self = [self init];
     if (self) {
 		BOOL isValid = YES;
@@ -64,7 +60,6 @@
 			self.addressComment = commentPart;
 			self.userName = userPart;
 			self.domain = domainPart;
-			self._addressBookPerson_ = person;
 		}
 		else {
 			self.invalidRawAddress = [NSString stringWithFormat:@"%@ <", commentPart?:@""];
@@ -101,6 +96,48 @@
 
 - (instancetype)initWithPasteboardPropertyList:(NSDictionary <NSString*, NSString*> *)propertyList ofType:(NSPasteboardType)type {
 	return [self initWithAddressComment:propertyList[@"addressComment"] userName:propertyList[@"userName"] domain:propertyList[@"domain"]];
+}
+
+- (instancetype)initWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier {
+	NSString * useIdentifier = identifier;
+	ABMultiValue * addressValues = [person valueForProperty:kABEmailProperty];
+	if (useIdentifier.length == 0) {
+		useIdentifier = addressValues.primaryIdentifier;
+	}
+	if (useIdentifier.length == 0) {
+		self = nil;
+		return nil;
+	}
+	NSString * addressString = [addressValues valueForIdentifier:useIdentifier];
+	NSRange atRange = [addressString rangeOfString:@"@"];
+	NSString * displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
+	NSString * userName = @"";
+	NSString * domain = addressString;
+	if (atRange.location != NSNotFound) {
+		userName = [addressString substringToIndex:atRange.location];
+		domain = [addressString substringFromIndex:(atRange.location + atRange.length)];
+	}
+	if (userName && domain) {
+		self = [self initWithAddressComment:displayName userName:userName domain:domain];
+		self._addressBookPerson_ = person;
+		self._addressBookIdentifier_ = useIdentifier;
+		return self;
+	}
+	else {
+		self = nil;
+		return nil;
+	}
+}
+
+- (instancetype)initWithAddressComment:(NSString *)commentPart emailAddress:(NSString *)fullAddress {
+	NSString * userName = fullAddress;
+	NSString * domain = @"";
+	NSRange atRange = [fullAddress rangeOfString:@"@"];
+	if (atRange.location != NSNotFound) {
+		userName = [fullAddress substringToIndex:atRange.location];
+		domain = [fullAddress substringFromIndex:(atRange.location + 1)];
+	}
+	return [self initWithAddressComment:commentPart userName:userName domain:domain];
 }
 
 
@@ -162,32 +199,6 @@
 	return nil;
 }
 
-+ (MKEmailAddress *)emailAddressWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier {
-	NSString * useIdentifier = identifier;
-	ABMultiValue * addressValues = [person valueForProperty:kABEmailProperty];
-	if (useIdentifier.length == 0) {
-		useIdentifier = addressValues.primaryIdentifier;
-	}
-	if (useIdentifier.length == 0) {
-		return nil;
-	}
-	NSString * addressString = [addressValues valueForIdentifier:useIdentifier];
-	NSRange atRange = [addressString rangeOfString:@"@"];
-	NSString * displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
-	NSString * userName = @"";
-	NSString * domain = addressString;
-    if (atRange.location != NSNotFound) {
-        userName = [addressString substringToIndex:atRange.location];
-        domain = [addressString substringFromIndex:(atRange.location + atRange.length)];
-    }
-    if (userName && domain){
-        return [[self class] emailAddressWithComment:displayName userName:userName domain:domain];
-    }
-    else{
-        return nil;
-    }
-}
-
 
 #pragma mark - Accessors
 
@@ -229,7 +240,11 @@
 - (NSString *)description {
     NSString * commentedAddress = self.displayAddress;
     if (commentedAddress) {
-        return [NSString stringWithFormat:@"<%@: %p> %@", [self class], self, commentedAddress];
+		NSString * personDesc = @"";
+		if (self._addressBookPerson_) {
+			personDesc = [NSString stringWithFormat:@" PersonID:%@", self._addressBookIdentifier_];
+		}
+        return [NSString stringWithFormat:@"<%@: %p%@> %@", [self class], self, personDesc, commentedAddress];
     }
     else {
         return [NSString stringWithFormat:@"<%@: %p> (INVALID) %@", [self class], self, self.invalidRawAddress];
@@ -246,6 +261,7 @@
 - (NSString *)displayName {
     return [self.addressComment decodedMimeEncodedString]?:self.userAtDomain;
 }
+
 - (ABPerson *)addressBookPerson {
     ABPerson * foundPerson = self._addressBookPerson_;
     if (!foundPerson) {
@@ -253,6 +269,13 @@
         NSArray * records = [[ABAddressBook sharedAddressBook] recordsMatchingSearchElement:searchElement];
         foundPerson = records.firstObject;
         self._addressBookPerson_ = foundPerson;
+		ABMultiValue * emailMulti = [foundPerson valueForProperty:kABEmailProperty];
+		for (NSString * identifier in emailMulti) {
+			if ([self.userAtDomain isEqualToString:[emailMulti valueForIdentifier:identifier]]) {
+				self._addressBookIdentifier_ = identifier;
+				break;
+			}
+		}
     }
     return foundPerson;
 }
