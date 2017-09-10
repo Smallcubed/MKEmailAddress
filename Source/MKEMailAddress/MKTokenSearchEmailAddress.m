@@ -12,7 +12,7 @@
 
 - (NSString *)searchDisplayStringWithPrefix:(NSString *)prefix {
 	
-	if (self.addressBookPerson) {
+	if (self.addressBookPerson && self.addressBookIdentifier) {
 		NSString * firstName = [self.addressBookPerson valueForProperty:kABFirstNameProperty];
 		NSString * lastName = [self.addressBookPerson valueForProperty:kABLastNameProperty];
 		ABMultiValue * emailValues = [self.addressBookPerson valueForProperty:kABEmailProperty];
