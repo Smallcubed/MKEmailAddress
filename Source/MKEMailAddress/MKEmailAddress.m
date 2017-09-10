@@ -119,8 +119,8 @@
 	}
 	if (userName && domain) {
 		self = [self initWithAddressComment:displayName userName:userName domain:domain];
-		self._addressBookPerson_ = person;
 		self._addressBookIdentifier_ = useIdentifier;
+		self._addressBookPerson_ = person;
 		return self;
 	}
 	else {
@@ -278,6 +278,10 @@
 		}
     }
     return foundPerson;
+}
+
+- (NSString *)addressBookIdentifier {
+	return self._addressBookIdentifier_;
 }
 
 - (BOOL)valid {
