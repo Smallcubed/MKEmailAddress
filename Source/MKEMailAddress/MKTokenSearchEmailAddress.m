@@ -10,48 +10,50 @@
 
 @implementation MKTokenSearchEmailAddress
 
-- (NSString *)searchDisplayString {
+- (NSString *)searchDisplayStringWithPrefix:(NSString *)prefix {
 	
-	NSString * address = self.userAtDomain;
-	NSString * comment = self.addressComment;
-
 	if (self.addressBookPerson) {
 		NSString * firstName = [self.addressBookPerson valueForProperty:kABFirstNameProperty];
 		NSString * lastName = [self.addressBookPerson valueForProperty:kABLastNameProperty];
 		ABMultiValue * emailValues = [self.addressBookPerson valueForProperty:kABEmailProperty];
-		NSString * identifier = self.addressBookIdentifier;
-		if (identifier.length == 0) {
-			identifier = emailValues.primaryIdentifier;
+
+		NSString * emailAddress = [emailValues valueForIdentifier:self.addressBookIdentifier];
+		if (emailAddress.length == 0) {
+			return nil;
 		}
-		NSString * emailAddress = [emailValues valueForIdentifier:identifier];
-		if (emailAddress.length > 0) {
-			address = emailAddress;
-			switch (self.matchType) {
-				case MVNTokenSearchMatchTypeEmail:
-					if (firstName || lastName) {
-						comment = [NSString stringWithFormat:@"%@%@%@", (firstName?:@""), ((firstName && lastName)?@" ":@""), (lastName?:@"")];
-					}
-					break;
-					
-				case MVNTokenSearchMatchTypeFirst:
-				case MVNTokenSearchMatchTypeComment:
-					if (!firstName) { return nil; }
-					comment = [NSString stringWithFormat:@"%@%@%@", (firstName?:@""), ((firstName && lastName)?@" ":@""), (lastName?:@"")];
-					break;
-					
-				case MVNTokenSearchMatchTypeLast:
-					if (!lastName) { return nil; }
-					BOOL hasBoth = (firstName && lastName);
-					comment = [NSString stringWithFormat:@"%@%@%@%@", (lastName?:@""), (hasBoth?@" (":@""), (firstName?:@""), (hasBoth?@")":@"")];
-					break;
-					
+		
+		NSString * lowerPrefix = [prefix lowercaseString];
+		NSMutableString * result = [NSMutableString string];
+		if ([[emailAddress lowercaseString] hasPrefix:lowerPrefix]) {
+			[result appendString:emailAddress];
+			if (firstName || lastName) {
+				[result appendString:@" ("];
+				[result appendFormat:@"%@%@%@)", (firstName?:@""), ((firstName && lastName)?@" ":@""), (lastName?:@"")];
 			}
 		}
+		else if ([[firstName lowercaseString] hasPrefix:lowerPrefix]) {
+			if (!firstName) { return nil; }
+			[result appendFormat:@"%@%@%@", (firstName?:@""), ((firstName && lastName)?@" ":@""), (lastName?:@"")];
+			[result appendFormat:@" — %@", emailAddress];
+		}
+		else if ([[lastName lowercaseString] hasPrefix:lowerPrefix]) {
+			if (!lastName) { return nil; }
+			BOOL hasBoth = (firstName && lastName);
+			[result appendFormat:@"%@%@%@%@", (lastName?:@""), (hasBoth?@" (":@""), (firstName?:@""), (hasBoth?@")":@"")];
+			[result appendFormat:@" — %@", emailAddress];
+		}
+		else {
+			return nil;
+		}
+		return result;
 	}
-	
+
+	NSString * address = self.userAtDomain;
+	NSString * comment = self.addressComment;
 	NSString * format = @"%1$@ (%2$@)";
-	if (self.matchType != MVNTokenSearchMatchTypeEmail) {
-		format = @"%2$@ — %1$@";
+	if (comment.length == 0) {
+		format = @"%1$@%2$@";
+		comment = @"";
 	}
 	return [NSString stringWithFormat:format, address, comment];
 }

@@ -8,14 +8,6 @@
 
 #import <MailKit/MailKit.h>
 
-typedef NS_ENUM(NSUInteger, MVNTokenSearchMatchType) {
-	MVNTokenSearchMatchTypeEmail,
-	MVNTokenSearchMatchTypeFirst,
-	MVNTokenSearchMatchTypeLast,
-	MVNTokenSearchMatchTypeComment
-};
-
 @interface MKTokenSearchEmailAddress : MKEmailAddress
-@property (assign) MVNTokenSearchMatchType matchType;
-@property (strong, readonly) NSString * _Nullable searchDisplayString;
+- (NSString *)searchDisplayStringWithPrefix:(NSString *)prefix;
 @end
