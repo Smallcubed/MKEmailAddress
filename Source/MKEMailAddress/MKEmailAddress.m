@@ -296,15 +296,17 @@
 		NSArray * records = [[ABAddressBook sharedAddressBook] recordsMatchingSearchElement:searchElement];
 		ABPerson * person = records.firstObject;
 		self._addressBookPerson_ = person;
-		ABMultiValue * emailMulti = [person valueForProperty:kABEmailProperty];
-		NSString * displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
-		if (displayName.length > 0) {
-			self.addressComment = displayName;
-		}
-		for (NSString * identifier in emailMulti) {
-			if ([self.userAtDomain isEqualToString:[emailMulti valueForIdentifier:identifier]]) {
-				self._addressBookIdentifier_ = identifier;
-				break;
+		if (person) {
+			ABMultiValue * emailMulti = [person valueForProperty:kABEmailProperty];
+			NSString * displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
+			if (displayName.length > 0) {
+				self.addressComment = displayName;
+			}
+			for (NSString * identifier in emailMulti) {
+				if ([self.userAtDomain isEqualToString:[emailMulti valueForIdentifier:identifier]]) {
+					self._addressBookIdentifier_ = identifier;
+					break;
+				}
 			}
 		}
 	}
@@ -313,7 +315,12 @@
 #pragma mark - NSCopying, Equality
 
 - (MKEmailAddress *)copyWithZone:(NSZone*)aZone {
-	return [[MKEmailAddress alloc] initWithAddressComment:self.addressComment userName:self.userName domain:self.domain];
+	MKEmailAddress * copiedAddress = [[MKEmailAddress alloc] initWithAddressComment:self.addressComment userName:self.userName domain:self.domain];
+	if (self.addressBookPerson && self.addressBookIdentifier) {
+		copiedAddress._addressBookPerson_ = self.addressBookPerson;
+		copiedAddress._addressBookIdentifier_ = self.addressBookIdentifier;
+	}
+	return copiedAddress;
 }
 
 - (BOOL)isEqualTo:(id)object {
