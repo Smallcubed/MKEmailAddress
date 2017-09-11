@@ -95,7 +95,21 @@
 }
 
 - (instancetype)initWithPasteboardPropertyList:(NSDictionary <NSString*, NSString*> *)propertyList ofType:(NSPasteboardType)type {
-	return [self initWithAddressComment:propertyList[@"addressComment"] userName:propertyList[@"userName"] domain:propertyList[@"domain"]];
+	MKEmailAddress * theAddress = nil;
+	if ([type isEqualToString:NSPasteboardTypeString]) {
+		theAddress = [self initWithRawAddress:(NSString *)propertyList];
+		[theAddress loadAddressBookPerson];
+	}
+	else {
+		if ((propertyList[@"addressBookUUID"].length > 0) && (propertyList[@"addressBookIdentifier"].length > 0)) {
+			ABPerson * person = (ABPerson *)[[ABAddressBook sharedAddressBook] recordForUniqueId:propertyList[@"addressBookUUID"]];
+			theAddress = [self initWithABPerson:person forIdentifier:propertyList[@"addressBookIdentifier"]];
+		}
+		else {
+			theAddress = [self initWithAddressComment:propertyList[@"addressComment"] userName:propertyList[@"userName"] domain:propertyList[@"domain"]];
+		}
+	}
+	return theAddress;
 }
 
 - (instancetype)initWithABPerson:(ABPerson *)person forIdentifier:(NSString *)identifier {
@@ -263,21 +277,8 @@
 }
 
 - (ABPerson *)addressBookPerson {
-    ABPerson * foundPerson = self._addressBookPerson_;
-    if (!foundPerson) {
-         ABSearchElement * searchElement = [ABPerson searchElementForProperty:kABEmailProperty label:nil key:nil value:[NSString stringWithFormat:@"%@", self.userAtDomain] comparison:kABPrefixMatchCaseInsensitive];
-        NSArray * records = [[ABAddressBook sharedAddressBook] recordsMatchingSearchElement:searchElement];
-        foundPerson = records.firstObject;
-        self._addressBookPerson_ = foundPerson;
-		ABMultiValue * emailMulti = [foundPerson valueForProperty:kABEmailProperty];
-		for (NSString * identifier in emailMulti) {
-			if ([self.userAtDomain isEqualToString:[emailMulti valueForIdentifier:identifier]]) {
-				self._addressBookIdentifier_ = identifier;
-				break;
-			}
-		}
-    }
-    return foundPerson;
+	[self loadAddressBookPerson];
+    return self._addressBookPerson_;
 }
 
 - (NSString *)addressBookIdentifier {
@@ -288,6 +289,26 @@
 	return (self.invalidRawAddress.length > 0)?NO:YES;
 }
 
+
+- (void)loadAddressBookPerson {
+	if (!self._addressBookPerson_) {
+		ABSearchElement * searchElement = [ABPerson searchElementForProperty:kABEmailProperty label:nil key:nil value:[NSString stringWithFormat:@"%@", self.userAtDomain] comparison:kABPrefixMatchCaseInsensitive];
+		NSArray * records = [[ABAddressBook sharedAddressBook] recordsMatchingSearchElement:searchElement];
+		ABPerson * person = records.firstObject;
+		self._addressBookPerson_ = person;
+		ABMultiValue * emailMulti = [person valueForProperty:kABEmailProperty];
+		NSString * displayName = [NSString stringWithFormat:@"%@ %@", [person valueForProperty:kABFirstNameProperty], [person valueForProperty:kABLastNameProperty]];
+		if (displayName.length > 0) {
+			self.addressComment = displayName;
+		}
+		for (NSString * identifier in emailMulti) {
+			if ([self.userAtDomain isEqualToString:[emailMulti valueForIdentifier:identifier]]) {
+				self._addressBookIdentifier_ = identifier;
+				break;
+			}
+		}
+	}
+}
 
 #pragma mark - NSCopying, Equality
 
@@ -359,7 +380,7 @@
 
 - (id)pasteboardPropertyListForType:(NSPasteboardType)type {
 	if ([type isEqualToString:MVNPasteboardTypeEmailAddress]) {
-		return @{@"addressComment": self.addressComment?:@"", @"userName": self.userName?:@"", @"domain": self.domain?:@""};
+		return @{@"addressComment": self.addressComment?:@"", @"userName": self.userName?:@"", @"domain": self.domain?:@"", @"addressBookUUID": self.addressBookPerson.uniqueId?:@"", @"addressBookIdentifier": self.addressBookIdentifier?:@""};
 	}
 	return self.rfc2822Representation;
 }

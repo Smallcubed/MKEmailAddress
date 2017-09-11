@@ -39,6 +39,8 @@
 - (instancetype _Nullable)initWithAddressComment:(NSString * _Nullable)commentPart emailAddress:(NSString * _Nonnull)fullAddress;
 - (instancetype _Nullable)initWithABPerson:(ABPerson * _Nonnull)person forIdentifier:(NSString * _Nullable)identifier;
 
+- (void)loadAddressBookPerson;
+
 + (MKEmailAddressArray * _Nullable)emailAddressesFromHeaderValue:(NSString * _Nonnull)headerValue;
 + (instancetype _Nullable)emailAddressWithRawAddress:(NSString * _Nonnull)rawAddress;
 + (instancetype _Nullable)emailAddressWithComment:(NSString * _Nullable)commentPart userName:(NSString * _Nonnull)userPart domain:(NSString * _Nonnull)domainPart;
