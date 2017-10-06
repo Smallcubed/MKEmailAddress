@@ -228,7 +228,7 @@
 }
 
 - (NSString *)displayAddress {
-	if (self.addressComment) {
+	if (self.addressComment.length > 0) {
 		if (self.userAtDomain) {
 			return [NSString stringWithFormat:@"%@ <%@>",self.addressComment,self.userAtDomain];
 		}
