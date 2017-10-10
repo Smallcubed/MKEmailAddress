@@ -240,7 +240,7 @@
 }
 
 - (NSString *)invertedDisplayAddress {
-	if (self.addressComment) {
+	if (self.addressComment.length > 0) {
 		if (self.userAtDomain) {
 			return [NSString stringWithFormat:@"%@ (%@)", self.userAtDomain, self.addressComment];
 		}
@@ -343,11 +343,14 @@
 	if (self.addressComment){
 		NSString * escapedQuotedComment = [self.addressComment stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
 		
-		if (self.userAtDomain){
-			if ([self.addressComment canBeConvertedToEncoding:NSASCIIStringEncoding]){
+		if (self.userAtDomain) {
+			if (self.addressComment.length == 0) {
+				return [NSString stringWithFormat:@"%@", self.userAtDomain];
+			}
+			else if ([self.addressComment canBeConvertedToEncoding:NSASCIIStringEncoding]) {
 				return [NSString stringWithFormat:@"\"%@\" <%@>",escapedQuotedComment,self.userAtDomain];
 			}
-			else{
+			else {
 				NSString * encodedComment = [NSString mimeWordWithString:self.addressComment preferredEncoding:NSISOLatin1StringEncoding encodingUsed:nil];
 				return [NSString stringWithFormat:@"\"%@\" <%@>",encodedComment,self.userAtDomain];
 			}
